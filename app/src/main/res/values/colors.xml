@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 与 app-ui 里 AppColors.LightBg / DarkBg 保持一致，启动画面和进入界面后的底色才不会跳一下 -->
+    <color name="window_background">#FFF6F8FA</color>
+    <color name="splash_icon_background">#FFFFFFFF</color>
+</resources>

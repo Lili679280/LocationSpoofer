@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 界面全部由 Compose 绘制，这里只决定窗口底色和 Android 12+ 的系统启动画面。
+         原来直接用 Theme.DeviceDefault.NoActionBar，启动时是一整片深灰底中间一个图标。 -->
+    <style name="Theme.LocationSpoofer" parent="@android:style/Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
+</resources>

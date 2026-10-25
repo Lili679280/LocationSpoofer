@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 启动器图标前景：沿用原来的系统定位准星图（@android:drawable/ic_menu_mylocation），
+     缩进到自适应图标的安全区内，避免被圆形 / 圆角遮罩裁掉 -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@android:drawable/ic_menu_mylocation"
+    android:inset="26%" />
