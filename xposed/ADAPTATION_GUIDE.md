@@ -94,27 +94,25 @@ adb shell dumpsys package android      # 查看 framework 包的版本/签名信
 * **用 `hookAllMethods` 按方法名匹配，而不是按精确签名匹配**：不同 API 级别里同名方法的参数列表经常不一样（比如老版本 `getCellLocation()` 没有参数，新版本可能多了一个 `callingPackage` 参数），按名字匹配 + 在回调里用 `chain.args` 动态适配参数个数，比在编译期写死某个精确重载更抗版本差异。
 * **返回值类型用反射动态判断，分支兼容**：参考 `getScanResults` 的写法——先看 `executable.returnType` 是不是 `ParceledListSlice`，不是的话再看真实返回值的运行时类型，两者都不匹配时再退回构造裸 `List`。永远不要假设"这个方法在所有版本上返回类型都一样"。
 * **字段读写用"方法优先、反射字段兜底"双保险**：既尝试调用 `setLatitude()` 这类公开 setter，也用 `XposedHelpers.setDoubleField(obj, "mLatitude", ...)` 直接改字段，两者都包一层 `try/catch` 各自独立失败不影响另一条路径——因为不同版本/不同 OEM 对同一个字段可能只留了其中一种访问方式。
-* **类名只写在适配器里，拿不到类时跳过而不是崩**：系统服务的候选类名写在 `AospVendor` / 各厂商适配器的 `classCandidates` 里，共享代码用 `SystemClassLocator.locate(...)` 查找，返回 `null` 就 `return` 跳过这个 Hook 点——保证一个 Hook 点适配失败不会拖垮整个模块在这台设备上的所有其他 Hook。
+* **类名只写在适配器里，拿不到类时跳过而不是崩**：系统服务的候选类名写在 `AospVendor` 等适配器的 `classCandidates` 里，共享代码用 `SystemClassLocator.locate(...)` 查找，返回 `null` 就 `return` 跳过这个 Hook 点——保证一个 Hook 点适配失败不会拖垮整个模块在这台设备上的所有其他 Hook。
 * **每个关键分支都要打日志**：本项目所有 Hook 都遵循 `[SysXxx] 描述性文本` 的日志前缀约定（`XposedBridge.log(...)`），包括"找到了类""挂载成功""挂载失败原因""这次调用命中/未命中目标应用"。真机上出问题时通常没法挂调试器，**日志是唯一的排障手段**，新 Hook 如果不打日志，出问题了基本没法远程排查用户反馈的日志。
 
 ---
 
-## 按厂商 / 系统版本分包：vendor 适配框架
+## 机型 / 系统适配层
 
-上面讲的都是"怎么找到目标类"，找到之后**别把各家的类名/差异堆进同一个 Hook 函数里**——项目已经内置了一套适配框架，位于 [`hooks/vendor/`](src/main/java/com/vincenthzr/locationspoofer/xposed/hooks/vendor/)，专门收纳这些差异。
+上面讲的都是"怎么找到目标类"，找到之后**别把各家的类名/差异堆进同一个 Hook 函数里**——差异统一收进 [`hooks/vendor/`](src/main/java/com/vincenthzr/locationspoofer/xposed/hooks/vendor/) 下的适配器。
 
-适配粒度只分两层：**厂商**（是不是小米/HyperOS、OPPO/ColorOS……）和**系统大版本**（同一厂商内跨大版本更新，比如 HyperOS 3 升到 HyperOS 4）。不按具体机型（市场型号）分——同厂商子品牌/旗舰机型通常共用同一套系统，差异很小，没必要为每个机型单开文件。
+共享 Hook 代码通过 `SystemClassLocator.locate(组件, classLoader, …)` 查找系统服务类；各系统的类名候选写在 `vendor/profiles/` 下各自的 `object` 里。系统识别规则（设备画像 → 系统家族）在 `core-geo` 的 `RomRules` 里，Hook 端和 App 端共用。目前只有 AOSP 基线适配器（Pixel 实测）。
 
-核心用法一句话：共享 Hook 代码通过 `SystemClassLocator.locate(组件, classLoader, …)` 查找系统服务类；各厂商的类名候选 / 定制逻辑写在 `vendor/profiles/` 下各自的 `object` 里，某厂商内需要跨版本区分时再在 `vendor/profiles/versions/` 下加一个继承 `SystemVersionVendor` 的适配器覆盖差异部分。系统识别规则（设备画像 → 系统家族）在 `core-geo` 的 `RomRules` 里，Hook 端和 App 端共用。**新增系统不用动任何共享 Hook 代码。**
-
-新增一个系统要改哪些文件的完整检查清单、三个扩展点（`classCandidates` / `additionalExemptPackages` / `installExtraHooks`）的取舍，见该包内的 [`README.md`](src/main/java/com/vincenthzr/locationspoofer/xposed/hooks/vendor/README.md)。本文方法一~五定位到的差异，最终都应该落到对应的 vendor 适配器里，而不是散落在各个 `SystemXxxHooker` 中。
+新增一个系统要改哪些文件，见该包内的 [`README.md`](src/main/java/com/vincenthzr/locationspoofer/xposed/hooks/vendor/README.md)。
 
 ---
 
 ## OEM 定制 ROM 的特殊坑
 
 * **小米 HyperOS / MIUI**：会在系统定位、Wi-Fi、AppOps 等服务里插入自己的风控/检测逻辑（对应本项目 `AntiDetectionHooker.kt`、`SystemAppOpsHooker.kt` 里专门处理的部分），排查时除了看 AOSP 对应类，还要留意 `com.miui.*`、`com.xiaomi.*` 包名下有没有相关的辅助类参与了判断。
-* **配置传递由框架负责**：全局与非全局版统一使用 libxposed 远程配置，不再通过 RootManager 注入配置文件读取规则。适配时检查框架是否支持远程配置、Hook 状态报告中的配置来源与发布时间，不要恢复公共临时配置副本或放宽 SELinux 授权。
+* **配置传递由框架负责**：配置统一通过 libxposed 远程配置传给系统进程，不再通过 RootManager 注入配置文件读取规则。适配时检查框架是否支持远程配置、Hook 状态报告中的配置来源与发布时间，不要恢复公共临时配置副本或放宽 SELinux 授权。
 * **APEX 模块版本漂移**：同一 Android 大版本号下，不同设备的 Google Play 系统更新（Project Mainline）可能已经把 APEX 模块升级到了不同的小版本，AOSP 源码 tag 对应的 APEX 代码不一定和真机完全一致，遇到诡异的方法签名不匹配问题时，优先信真机反编译结果，不要迷信源码 tag。
 
 ---
@@ -125,7 +123,7 @@ adb shell dumpsys package android      # 查看 framework 包的版本/签名信
 
 1. 让反馈者截图 App 的 **"系统适配"页**（系统名与版本、命中的适配器）和 **"系统适配 → Hook 运行状态"页**。状态页直接给出每个组件的结论：
    * **未找到类**：当前系统上实现类名变了 → 按方法一~三找到真实类名，加进对应适配器的 `classCandidates`；
-   * **未挂上方法 / 部分方法缺失**（方法后面是 `×0`）：类找对了，但方法被改名或挪走了 → 反编译确认后用 `installExtraHooks` 或版本级适配器补；
+   * **未挂上方法 / 部分方法缺失**（方法后面是 `×0`）：类找对了，但方法被改名或挪走了 → 反编译确认后在对应的 Hook 里追加新方法名；
    * **等待服务启动**：服务还没注册，通常稍后刷新即可；一直如此说明注册拦截也没捕获到；
    * **报告来自上一次开机 / 没有读取到报告**：模块没在该进程生效，先检查 LSPosed 作用域和是否重启；
    * 全部"已挂载"但目标应用仍拿到真实数据：方法挂上了但没触发（目标类找错了）或改写没生效（字段 / 返回类型分支没走对），这时再要完整的 `adb logcat | grep LocationSpoofer` 日志看 `[SysXxx]` 输出。

@@ -1,6 +1,5 @@
 package com.vincenthzr.locationspoofer.viewmodel
 
-import com.vincenthzr.locationspoofer.ui.BuildConfig
 import androidx.lifecycle.viewModelScope
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.db.LocationRecord
@@ -92,15 +91,6 @@ internal fun MainViewModel.startSpoofing() {
  */
 
 private suspend fun MainViewModel.restartHookedAppsSilently() {
-    if (!BuildConfig.GLOBAL_SCHEME) {
-        // 非全局方案：重启 LSPosed 作用域里勾选的全部 App（包括承担融合定位的 GMS）
-        val apps = lsposedManager.getHookedApps(context)
-        if (apps.isNotEmpty()) {
-            locationRepository.checkRootAccess() // 确认 Root 授权，以便强制停止目标应用
-            locationRepository.forceStopApps(apps.map { it.packageName })
-        }
-        return
-    }
     val targetPackages = mutableSetOf<String>()
     // 1. LSPosed 传统作用域勾选的应用
     targetPackages.addAll(lsposedManager.getHookedApps(context).map { it.packageName })
@@ -180,7 +170,6 @@ internal fun MainViewModel.handOffToRealLocation() {
                 mapRecenterRequest = com.vincenthzr.locationspoofer.data.model.MapRecenterRequest(real.first, real.second)
             )
         }
-        if (!BuildConfig.GLOBAL_SCHEME) return@launch
         locationRepository.startSpoofing(
             context, real.first, real.second,
             "STILL", 0f, System.currentTimeMillis(),
@@ -218,6 +207,8 @@ private suspend fun MainViewModel.awaitFreshRealLocationGcj(sinceElapsedNanos: L
                     cont.resume(gcj.lat to gcj.lng)
                 }
 
+                // Android 10 及以下这三个回调还没有默认实现，必须写出来
+                @Deprecated("Deprecated in Java")
                 override fun onStatusChanged(provider: String?, status: Int, extras: android.os.Bundle?) {}
                 override fun onProviderEnabled(provider: String) {}
                 override fun onProviderDisabled(provider: String) {}

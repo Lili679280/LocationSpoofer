@@ -69,19 +69,6 @@ internal fun isValidAdStructure(bytes: ByteArray): Boolean {
         return foundValidAd
     }
 
-    // 检查字节数组是否已包含名称 AD (0x08 简称 或 0x09 全称)
-internal fun containsAdName(bytes: ByteArray): Boolean {
-        var pos = 0
-        while (pos < bytes.size) {
-            val len = bytes[pos].toInt() and 0xFF
-            if (len == 0 || pos + 1 + len > bytes.size) break
-            val type = bytes[pos + 1].toInt() and 0xFF
-            if (type == 0x08 || type == 0x09) return true
-            pos += 1 + len
-        }
-        return false
-    }
-
     // 辅助函数：智能构造并规范化 BLE 广播包字节数组
 internal fun buildScanRecordBytes(name: String, hexRecord: String, address: String = ""): ByteArray {
         val cleanHex = hexRecord.replace("0x", "", ignoreCase = true)
@@ -322,7 +309,7 @@ internal fun createScanResult(
                         when {
                             devClass.isAssignableFrom(pType) -> args[idx] = device
                             recordClass != null && recordClass.isAssignableFrom(pType) -> args[idx] = scanRecord
-                            pType == Int::class.javaPrimitiveType || pType == java.lang.Integer::class.java -> {
+                            pType == Int::class.javaPrimitiveType || pType == Int::class.javaObjectType -> {
                                 when (idx) {
                                     1 -> args[idx] = 0x001B
                                     2 -> args[idx] = if (c.parameterCount == 4) rssi else 1
@@ -333,8 +320,8 @@ internal fun createScanResult(
                                     else -> args[idx] = if (idx == c.parameterCount - 2) rssi else 0
                                 }
                             }
-                            pType == Long::class.javaPrimitiveType || pType == java.lang.Long::class.java -> args[idx] = timestampNanos
-                            pType == Boolean::class.javaPrimitiveType || pType == java.lang.Boolean::class.java -> args[idx] = false
+                            pType == Long::class.javaPrimitiveType || pType == Long::class.javaObjectType -> args[idx] = timestampNanos
+                            pType == Boolean::class.javaPrimitiveType || pType == Boolean::class.javaObjectType -> args[idx] = false
                             else -> args[idx] = null
                         }
                     }

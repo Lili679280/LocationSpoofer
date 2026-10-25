@@ -93,34 +93,22 @@ private fun MainViewModel.fallbackToNativeLocation(
             ).show()
         }
 
-        val listener = object : android.location.LocationListener {
-            override fun onLocationChanged(location: android.location.Location) {
-                if (forceCallback != null) {
-                    android.widget.Toast.makeText(
-                        ctx,
-                        ctx.getString(com.vincenthzr.locationspoofer.ui.R.string.native_location_success),
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
-                }
-                applyNativeLocation(ctx, location, forceCallback, convertToGcj)
-                locationManager.removeUpdates(this)
-            }
-
-            override fun onStatusChanged(
-                provider: String?,
-                status: Int,
-                extras: android.os.Bundle?
-            ) {
-            }
-
-            override fun onProviderEnabled(provider: String) {}
-            override fun onProviderDisabled(provider: String) {}
-        }
-        locationManager.requestSingleUpdate(
+        androidx.core.location.LocationManagerCompat.getCurrentLocation(
+            locationManager,
             provider,
-            listener,
-            android.os.Looper.getMainLooper()
-        )
+            android.os.CancellationSignal(),
+            androidx.core.content.ContextCompat.getMainExecutor(ctx)
+        ) { location ->
+            if (location == null) return@getCurrentLocation
+            if (forceCallback != null) {
+                android.widget.Toast.makeText(
+                    ctx,
+                    ctx.getString(com.vincenthzr.locationspoofer.ui.R.string.native_location_success),
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
+            applyNativeLocation(ctx, location, forceCallback, convertToGcj)
+        }
     } catch (e: SecurityException) {
         if (forceCallback != null) {
             android.widget.Toast.makeText(
@@ -193,7 +181,6 @@ internal suspend fun MainViewModel.fetchBaiduNetworkLocationGcj(): Pair<Double, 
                 client.locOption = com.baidu.location.LocationClientOption().apply {
                     setCoorType("gcj02")
                     setLocationMode(com.baidu.location.LocationClientOption.LocationMode.Battery_Saving)
-                    setOpenGps(false)
                     setOnceLocation(true)
                     setIsNeedAddress(false)
                 }
@@ -204,7 +191,7 @@ internal suspend fun MainViewModel.fetchBaiduNetworkLocationGcj(): Pair<Double, 
                             com.baidu.location.BDLocation.TypeNetWorkLocation,
                             com.baidu.location.BDLocation.TypeOffLineLocation
                         )
-                        if (cont.isActive) cont.resume(if (ok) location!!.latitude to location.longitude else null)
+                        if (cont.isActive) cont.resume(if (ok) location.latitude to location.longitude else null)
                     }
                 }
                 cont.invokeOnCancellation { runCatching { client.stop() } }
@@ -254,8 +241,8 @@ private suspend fun MainViewModel.fallbackToNativeLocationSilent(
 ): Pair<Double, Double>? = withTimeoutOrNull(5_000) {
     suspendCancellableCoroutine { cont ->
         val locationManager = ctx.getSystemService(Context.LOCATION_SERVICE) as android.location.LocationManager
-        var listener: android.location.LocationListener? = null
-        cont.invokeOnCancellation { listener?.let { runCatching { locationManager.removeUpdates(it) } } }
+        val cancellation = android.os.CancellationSignal()
+        cont.invokeOnCancellation { cancellation.cancel() }
         try {
             val provider = when {
                 locationManager.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER) -> android.location.LocationManager.NETWORK_PROVIDER
@@ -270,20 +257,16 @@ private suspend fun MainViewModel.fallbackToNativeLocationSilent(
                 cont.resume(getNativeConverted(ctx, lastLocation, convertToGcj))
                 return@suspendCancellableCoroutine
             }
-            val callback = object : android.location.LocationListener {
-                override fun onLocationChanged(location: android.location.Location) {
-                    locationManager.removeUpdates(this)
-                    if (cont.isActive) cont.resume(getNativeConverted(ctx, location, convertToGcj))
-                }
-                override fun onStatusChanged(provider: String?, status: Int, extras: android.os.Bundle?) {}
-                override fun onProviderEnabled(provider: String) {}
-                override fun onProviderDisabled(provider: String) {}
+            androidx.core.location.LocationManagerCompat.getCurrentLocation(
+                locationManager,
+                provider,
+                cancellation,
+                androidx.core.content.ContextCompat.getMainExecutor(ctx)
+            ) { location ->
+                if (cont.isActive) cont.resume(location?.let { getNativeConverted(ctx, it, convertToGcj) })
             }
-            listener = callback
-            locationManager.requestSingleUpdate(provider, callback, android.os.Looper.getMainLooper())
-            if (!cont.isActive) locationManager.removeUpdates(callback)
         } catch (error: Exception) {
-            listener?.let { runCatching { locationManager.removeUpdates(it) } }
+            cancellation.cancel()
             if (cont.isActive) cont.resume(null)
         }
     }

@@ -279,11 +279,8 @@ class LocationHooker : XposedModule() {
         return null
     }
 
-
     companion object {
 
-        // 系统进程同样需要覆盖（android进程持有LocationManagerService）
-        val SYSTEM_PACKAGES = setOf("android", "system", "com.android.phone")
         internal const val VERBOSE_CELL_BUILD_LOGS = false
 
         fun hasTypeByName(clazz: Class<*>?, typeName: String): Boolean {
@@ -313,12 +310,7 @@ class LocationHooker : XposedModule() {
         }
 
         startConfigWorker()
-        val handledAsSystemProcess = if (BuildConfig.GLOBAL_SCHEME) {
-            handleSystemProcessGlobal(pkg, processName, classLoader)
-        } else {
-            handleSystemProcessScoped(pkg, processName, classLoader)
-        }
-        if (handledAsSystemProcess) return
+        if (handleSystemProcess(pkg, processName, classLoader)) return
 
         if (environmentHooksInstalled) {
             // 同一进程内 handleLoadPackage 被再次触发（例如宿主 App 内嵌的 WebView 会作为独立的
@@ -396,41 +388,11 @@ class LocationHooker : XposedModule() {
     }
 
     /**
-     * 非全局（scoped）方案下对系统进程的处理：只装基础定位与 GNSS Hook，
-     * 绝对不 Hook 系统的 Wi-Fi、基站、网络状态与蓝牙底层状态机。
-     * @return true 表示该进程已处理完毕（或应当跳过），调用方不再继续安装 App 内 Hook。
-     */
-    private fun handleSystemProcessScoped(pkg: String, processName: String, classLoader: ClassLoader): Boolean {
-        // 防止注入到 SystemUI 或 com.android.bluetooth 导致崩溃或 SELinux 违规
-        if (pkg == "com.android.systemui" || pkg == "com.android.bluetooth" || processName.contains("com.android.bluetooth")) {
-            return true
-        }
-
-        val isSystemServer =
-            (processName == "system_server") || (processName == "system")
-
-        // 核心系统进程：system_server, com.android.phone 等
-        val isCoreSystemProcess = isSystemServer ||
-                processName == "com.android.phone" ||
-                processName == "com.android.systemui"
-
-        if (isCoreSystemProcess) {
-            // 避免破坏系统 internal 状态机引发 NullPointerException 导致 system_server 崩溃进入安全模式
-            XposedBridge.log("[LocationSpoofer] Core system process ($pkg / $processName) detected, skipping environment hooks to prevent system crash.")
-            hookLocationAPIs(classLoader, pkg)
-            hookGnssStatus(classLoader)
-            readConfig()
-            return true
-        }
-        return false
-    }
-
-    /**
-     * 全局（global）方案下对系统进程的处理：在 system_server / com.android.phone / com.android.bluetooth
+     * 系统进程的处理：在 system_server / com.android.phone / com.android.bluetooth
      * 里安装系统服务级 Hook，一次性对全设备生效。
      * @return true 表示该进程已处理完毕（或应当跳过），调用方不再继续安装 App 内 Hook。
      */
-    private fun handleSystemProcessGlobal(pkg: String, processName: String, classLoader: ClassLoader): Boolean {
+    private fun handleSystemProcess(pkg: String, processName: String, classLoader: ClassLoader): Boolean {
         // 防止注入到 SystemUI 导致崩溃或无意义占用
         if (pkg == "com.android.systemui" || processName == "com.android.systemui") {
             return true
@@ -462,12 +424,8 @@ class LocationHooker : XposedModule() {
         systemHooksInstalled = true
         XposedBridge.log("[SysHook] Deploying system framework hooks in $processName...")
 
-        // 厂商适配方案的手动覆盖（VendorRegistry.applyManualOverride）必须在下面任何一个
-        // hookSystemXxxService 之前生效——它们会通过 SystemClassLocator 查询 VendorRegistry，从而触发
-        // VendorRegistry.active 这个 by lazy 属性首次求值，晚了就再也覆盖不了。这里提前读一次
-        // 配置：readConfig() 可重复调用，后续调用只返回内存里已缓存的 lastConfig，只读内存。
+        // readConfig() 可重复调用，后续调用只返回内存里已缓存的 lastConfig
         val earlyCfg = readConfig()
-        VendorRegistry.applyManualOverride(earlyCfg?.optString("vendor_override", "auto"))
 
         // Hook 运行状态报告（App 的"系统适配 → Hook 运行状态"页读取），每个系统进程各写一份
         HookStatus.begin(
@@ -506,10 +464,8 @@ class LocationHooker : XposedModule() {
             deploy("hookSystemBluetoothService") { hookSystemBluetoothService(classLoader) }
         }
 
-        // 机型/系统适配层：先打印一次命中的适配器画像，再执行该机型专属的额外 Hook（默认空实现，
-        // 各厂商在 vendor/profiles/ 下按需覆写）。基线 Hook 已在上面装完，这里是纯追加，不影响任何机型。
+        // 打印一次命中的机型/系统适配器画像，便于排查
         VendorRegistry.logSelectionOnce()
-        deploy("installExtraHooks") { VendorRegistry.installExtraHooks(this, classLoader) }
 
         val cfg = readConfig()
         android.util.Log.e(
@@ -1072,6 +1028,4 @@ class LocationHooker : XposedModule() {
         }
     }
 
-    internal var cachedGpsSatellitesList: Iterable<Any>? = null
-    internal var lastGpsSatellitesUpdate = 0L
 }

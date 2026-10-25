@@ -55,7 +55,7 @@ internal fun Instrumentation.verifyModuleHotReload(): Bundle {
     try {
         runBlocking {
             val service = moduleService()
-            check(BuildConfig.GLOBAL_SCHEME && service.apiVersion >= 102)
+            check(service.apiVersion >= 102)
             val scope = service.scope.sorted()
             val targets = service.runningTargets
             val pids = targets.associate { it.processName to it.pid }

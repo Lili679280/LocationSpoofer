@@ -24,6 +24,4 @@ data class SpoofingUiState(
     val cachedSearchQuery: String = "",
     val cachedSearchAt: Long = 0L,
 
-    // 通知 / 错误
-    val toastMessage: String? = null
 )

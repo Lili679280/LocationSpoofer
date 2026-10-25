@@ -73,7 +73,7 @@ enum class MainSubScreen {
     Update,
     LanguageSettings,
     MapEngineSettings,
-    VendorScheme,
+    SystemAdaptation,
     MotionRealism,
     EnvTokens,
     SystemHookApps
@@ -384,7 +384,7 @@ fun MainScaffoldScreen(
                             onNavigateToUpdate = { currentSubScreen = MainSubScreen.Update },
                             onNavigateToLanguage = { currentSubScreen = MainSubScreen.LanguageSettings },
                             onNavigateToMapEngine = { currentSubScreen = MainSubScreen.MapEngineSettings },
-                            onNavigateToVendorScheme = { currentSubScreen = MainSubScreen.VendorScheme },
+                            onNavigateToSystemAdaptation = { currentSubScreen = MainSubScreen.SystemAdaptation },
                             onNavigateToMotionRealism = { currentSubScreen = MainSubScreen.MotionRealism },
                             onNavigateToEnvTokens = { currentSubScreen = MainSubScreen.EnvTokens }
                         )
@@ -460,7 +460,7 @@ fun MainScaffoldScreen(
                         onClose = { currentSubScreen = MainSubScreen.None }
                     )
 
-                    MainSubScreen.VendorScheme -> com.vincenthzr.locationspoofer.ui.screen.settings.VendorSchemeScreen(
+                    MainSubScreen.SystemAdaptation -> com.vincenthzr.locationspoofer.ui.screen.settings.SystemAdaptationScreen(
                         viewModel = viewModel,
                         uiState = uiState,
                         isDark = isDark,

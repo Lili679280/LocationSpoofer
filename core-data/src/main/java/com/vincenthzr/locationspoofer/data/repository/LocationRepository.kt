@@ -268,25 +268,6 @@ class LocationRepository(
         )
     }
 
-    suspend fun updateWifiJson(wifiJson: String, appCoordinateSystems: Map<String, String>) {
-        SpoofingState.wifiJson = wifiJson
-        // 同步写入配置文件,确保Xposed端能读取到WiFi数据
-        configManager.saveConfig(
-            SpoofingState.latitude,
-            SpoofingState.longitude,
-            SpoofingState.isActive,
-            SpoofingState.simMode,
-            SpoofingState.simBearing,
-            startTimestamp = SpoofingState.startTimestamp,
-            wifiJson = wifiJson,
-            appCoordinateSystems = appCoordinateSystems,
-            cellJson = SpoofingState.cellJson,
-            bluetoothJson = SpoofingState.bluetoothJson,
-            altitude = settingsManager.altitude.toDoubleOrNull() ?: 0.0,
-            satelliteCount = settingsManager.satelliteCount.toIntOrNull() ?: 20
-        )
-    }
-
     private fun routePointsToJson(points: List<RoutePoint>): String {
         val arr = JSONArray()
         points.forEach { p ->

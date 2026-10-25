@@ -1,6 +1,5 @@
 package com.vincenthzr.locationspoofer.viewmodel
 
-import com.vincenthzr.locationspoofer.ui.BuildConfig
 import android.content.Context
 import java.util.Locale
 import androidx.lifecycle.viewModelScope
@@ -10,7 +9,6 @@ import com.vincenthzr.locationspoofer.utils.AltitudeModel
 import com.vincenthzr.locationspoofer.data.model.RoutePlanStage
 import com.vincenthzr.locationspoofer.data.model.AppMapType
 import com.vincenthzr.locationspoofer.data.model.MapEngine
-import com.vincenthzr.locationspoofer.vendor.VendorScheme
 import com.vincenthzr.locationspoofer.data.model.SearchMode
 import com.vincenthzr.locationspoofer.data.state.SpoofingState
 import com.vincenthzr.locationspoofer.ui.screen.AppPoiItem
@@ -193,11 +191,6 @@ private suspend fun MainViewModel.mergeLegacyRecords() {
     }
 }
 
-internal fun MainViewModel.updateLanguage(langCode: String) {
-    settingsRepository.setLanguage(langCode)
-    _uiState.update { it.copy(currentLanguage = langCode) }
-}
-
 internal fun MainViewModel.setMapType(type: AppMapType) {
     settingsRepository.setMapType(type.name)
     _uiState.update { it.copy(mapType = type) }
@@ -206,18 +199,6 @@ internal fun MainViewModel.setMapType(type: AppMapType) {
 internal fun MainViewModel.setMapEngine(engine: MapEngine) {
     settingsRepository.setMapEngine(engine.name)
     _uiState.update { it.copy(mapEngine = engine) }
-}
-
-/**
- * 设置手动选择的厂商适配方案。system_server 里的 [com.vincenthzr.locationspoofer.xposed.hooks.vendor.VendorRegistry]
- * 只在进程启动、Hook 安装的那一刻读取这个值（见 `VendorRegistry.applyManualOverride`），
- * 所以切换方案后需要重启设备才能真正生效，UI 侧应提示用户这一点。
- */
-internal fun MainViewModel.setVendorScheme(scheme: VendorScheme) {
-    settingsRepository.setVendorOverride(scheme.id)
-    _uiState.update { it.copy(vendorScheme = scheme) }
-    // 常驻设置项在每次写配置时都会刷新；已经写过配置时立即同步一次，重启后系统进程就能读到
-    viewModelScope.launch { locationRepository.patchConfig { } }
 }
 
 internal fun MainViewModel.setDebugDumpSystemServices(enabled: Boolean) {
@@ -241,10 +222,6 @@ internal fun MainViewModel.dismissRootSetupTestResult() {
 /** 从 LSPosed 作用域与系统级 Hook 目标应用拉取当前生效的目标 App 列表，触发"确认重启应用"弹窗 */
 
 internal fun MainViewModel.requestRestartHookedApps() {
-    if (!BuildConfig.GLOBAL_SCHEME) {
-        _uiState.update { it.copy(hookedAppsToRestart = lsposedManager.getHookedApps(context)) }
-        return
-    }
     val targetPackages = mutableSetOf<String>()
     targetPackages.addAll(lsposedManager.getHookedApps(context).map { it.packageName })
     targetPackages.addAll(settingsRepository.getSystemHookPackages())
@@ -554,12 +531,6 @@ internal fun MainViewModel.setSystemHookGlobalMode(enabled: Boolean) {
     refreshSystemHookConfig()
 }
 
-internal fun MainViewModel.setForceLocationEnabled(enabled: Boolean) {
-    settingsRepository.forceLocationEnabled = enabled
-    _uiState.update { it.copy(forceLocationEnabled = enabled) }
-    refreshSystemHookConfig()
-}
-
 private fun MainViewModel.refreshSystemHookConfig() {
     if (_uiState.value.isSpoofingActive) {
         viewModelScope.launch {
@@ -610,20 +581,6 @@ internal fun MainViewModel.setSystemHookPackageEnabled(pkg: String, enabled: Boo
         viewModelScope.launch {
             // 只刷新坐标系映射与常驻设置字段（系统级模拟目标等由 patchConfig 自动刷新），不动位置与路线状态
             locationRepository.patchConfig { it.put("app_coordinate_systems", org.json.JSONObject(_uiState.value.appCoordinateSystems)) }
-        }
-    }
-}
-
-internal fun MainViewModel.removeAppCoordinateSystem(pkg: String) {
-    val currentMap = _uiState.value.appCoordinateSystems.toMutableMap()
-    currentMap.remove(pkg)
-    settingsRepository.setAppCoordinateSystems(currentMap)
-    _uiState.update { it.copy(appCoordinateSystems = currentMap) }
-
-    if (_uiState.value.isSpoofingActive) {
-        viewModelScope.launch {
-            // 只刷新坐标系映射与常驻设置字段（系统级模拟目标等由 patchConfig 自动刷新），不动位置与路线状态
-            locationRepository.patchConfig { it.put("app_coordinate_systems", org.json.JSONObject(currentMap)) }
         }
     }
 }

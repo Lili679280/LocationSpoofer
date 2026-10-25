@@ -33,7 +33,6 @@ import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.viewmodel.setDebugDumpSystemServices
 import org.koin.compose.koinInject
-import com.vincenthzr.locationspoofer.ui.BuildConfig
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
@@ -49,7 +48,7 @@ import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 
 @Composable
-fun VendorSchemeScreen(
+fun SystemAdaptationScreen(
     viewModel: MainViewModel,
     uiState: AppState,
     isDark: Boolean = isSystemInDarkTheme(),
@@ -69,7 +68,7 @@ fun VendorSchemeScreen(
     var showHookStatus by remember { mutableStateOf(false) }
 
     fun refreshHookStatus() {
-        if (!BuildConfig.GLOBAL_SCHEME || hookLoading) return
+        if (hookLoading) return
         hookLoading = true
         scope.launch {
             hookReports = hookStatusRepository.readAll()
@@ -198,23 +197,21 @@ fun VendorSchemeScreen(
                     )
                 }
 
-                if (BuildConfig.GLOBAL_SCHEME) {
-                    val summary = hookStatusSummary(hookReports)
-                    NavigationRowCard(
-                        title = stringResource(R.string.hook_status_title),
-                        chip = when {
-                            hookLoading && hookReports.isEmpty() -> null
-                            summary == null -> stringResource(R.string.hook_status_summary_none)
-                            else -> stringResource(R.string.hook_status_summary, summary.first, summary.second)
-                        },
-                        chipColor = when {
-                            summary == null -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-                            summary.first == summary.second -> AccentGreen
-                            else -> AccentOrange
-                        },
-                        onClick = { showHookStatus = true }
-                    )
-                }
+                val summary = hookStatusSummary(hookReports)
+                NavigationRowCard(
+                    title = stringResource(R.string.hook_status_title),
+                    chip = when {
+                        hookLoading && hookReports.isEmpty() -> null
+                        summary == null -> stringResource(R.string.hook_status_summary_none)
+                        else -> stringResource(R.string.hook_status_summary, summary.first, summary.second)
+                    },
+                    chipColor = when {
+                        summary == null -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                        summary.first == summary.second -> AccentGreen
+                        else -> AccentOrange
+                    },
+                    onClick = { showHookStatus = true }
+                )
 
                 NavigationRowCard(
                     title = stringResource(R.string.adaptation_progress_full),

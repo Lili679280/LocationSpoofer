@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.progress.AdaptationProgress
 import com.vincenthzr.locationspoofer.progress.AdaptationProgressSource
-import com.vincenthzr.locationspoofer.ui.BuildConfig
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.screen.RenderMarkdownContent
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue

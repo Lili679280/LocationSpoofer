@@ -86,7 +86,6 @@ internal fun LocationHooker.restoreSystemBleReloadState(value: Any?) {
 
 internal fun LocationHooker.hookSystemBluetoothService(classLoader: ClassLoader) {
     if (isBluetoothServiceHooked) return
-    if (com.vincenthzr.locationspoofer.xposed.hooks.vendor.VendorRegistry.active.usesFrameworkBleDelivery) return
 
     // 扫描入口类：Android 17 的 le_scan.ScanBinder，或更早版本的 GattService（可能在 bluetooth APEX 里）；
     // 都找不到时从 ServiceManager 里已注册的 GATT 服务实例拿真实类

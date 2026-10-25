@@ -454,7 +454,7 @@ internal fun LocationHooker.constructCellIdentityByType(
             t == Float::class.javaPrimitiveType -> 0f
             t == Double::class.javaPrimitiveType -> 0.0
             t == IntArray::class.java -> IntArray(0)
-            t == java.util.Collection::class.java || t.isAssignableFrom(java.util.ArrayList::class.java) -> emptyList<Any>()
+            t == Collection::class.java || t.isAssignableFrom(java.util.ArrayList::class.java) -> emptyList<Any>()
             else -> null
         }
     }.toTypedArray()

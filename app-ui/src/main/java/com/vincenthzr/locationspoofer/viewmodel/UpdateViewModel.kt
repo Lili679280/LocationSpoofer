@@ -5,7 +5,6 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vincenthzr.locationspoofer.data.model.GithubRelease
-import com.vincenthzr.locationspoofer.ui.BuildConfig
 import com.vincenthzr.locationspoofer.utils.UpdateManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -41,7 +40,7 @@ class UpdateViewModel(private val context: Context) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val request = Request.Builder()
-                    .url("https://api.github.com/repos/HuangZhuoRui/LocationSpoofer/releases")
+                    .url("https://api.github.com/repos/Lili679280/LocationSpoofer/releases")
                     .header("Accept", "application/vnd.github.v3+json")
                     .build()
 
@@ -68,7 +67,7 @@ class UpdateViewModel(private val context: Context) : ViewModel() {
                         for (j in 0 until assets.length()) {
                             val asset = assets.getJSONObject(j)
                             val assetName = asset.optString("name", "")
-                            if (assetName.endsWith(".apk") && isAssetForCurrentScheme(assetName)) {
+                            if (assetName.endsWith(".apk")) {
                                 val url = asset.optString("browser_download_url")
                                 if (assetName.contains("armeabi-v7a") || assetName.contains("32")) {
                                     downloadUrl32Bit = url
@@ -167,14 +166,4 @@ class UpdateViewModel(private val context: Context) : ViewModel() {
             }
         }
     }
-}
-
-/**
- * 同一个 Release 里同时挂着两个模拟方案的 APK，文件名形如 LocationSpoofer-<scheme>-<abi>-<tag>.apk
- * （见 .github/workflows/release.yml），只挑和当前安装的方案一致的那一个。
- * 引入 scheme 变体之前的旧 Release 文件名里没有方案标记，那时发布的都是非全局（scoped）方案。
- */
-private fun isAssetForCurrentScheme(assetName: String): Boolean {
-    val markedGlobal = assetName.contains("-global-")
-    return if (BuildConfig.GLOBAL_SCHEME) markedGlobal else !markedGlobal
 }

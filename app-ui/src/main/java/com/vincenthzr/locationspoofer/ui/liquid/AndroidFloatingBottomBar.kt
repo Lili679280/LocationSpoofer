@@ -332,7 +332,7 @@ fun AndroidFloatingBottomBar(
                     onClick = {}
                 )
                 .then(
-                    if (hasBackdrop && backdrop != null) {
+                    if (hasBackdrop) {
                         Modifier.drawBackdrop(
                             backdrop = backdrop,
                             shape = { pillShape },
@@ -368,7 +368,7 @@ fun AndroidFloatingBottomBar(
             content = content
         )
 
-        if (hasBackdrop && backdrop != null) {
+        if (hasBackdrop) {
             CompositionLocalProvider(
                 LocalFloatingBottomBarTabScale provides {
                     lerp(1f, 1.2f, dampedDragAnimation.pressProgress)

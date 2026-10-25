@@ -34,37 +34,6 @@ interface EnvironmentDao {
     suspend fun insertLocationCell(record: LocationCell)
 
     @Transaction
-    @Query(
-        """
-        SELECT * FROM location_records 
-        ORDER BY ((lat - :targetLat)*(lat - :targetLat) + (lng - :targetLng)*(lng - :targetLng)) ASC 
-        LIMIT :limit
-    """
-    )
-    suspend fun getNearestLocations(
-        targetLat: Double,
-        targetLng: Double,
-        limit: Int = 3
-    ): List<CompleteLocation>
-
-    @Transaction
-    @Query(
-        """
-        SELECT * FROM location_records 
-        WHERE lat BETWEEN :minLat AND :maxLat 
-          AND lng BETWEEN :minLng AND :maxLng 
-        LIMIT :limit
-    """
-    )
-    suspend fun getCompleteLocationsInBounds(
-        minLat: Double,
-        maxLat: Double,
-        minLng: Double,
-        maxLng: Double,
-        limit: Int = 10
-    ): List<CompleteLocation>
-
-    @Transaction
     @Query("SELECT * FROM location_records WHERE id = :id LIMIT 1")
     suspend fun getCompleteLocationById(id: Long): CompleteLocation?
 
@@ -161,14 +130,8 @@ interface EnvironmentDao {
     @Query("DELETE FROM location_records")
     suspend fun clearAll()
 
-    @Query("DELETE FROM collection_routes")
-    suspend fun clearCollectionRoutes()
-
     @Query("DELETE FROM location_records WHERE id = :id")
     suspend fun deleteLocation(id: Long)
-
-    @Query("DELETE FROM location_records WHERE id IN (:ids)")
-    suspend fun deleteLocations(ids: List<Long>)
 
     @Query("DELETE FROM location_wifi WHERE locationId = :locationId AND bssid = :bssid")
     suspend fun deleteLocationWifi(locationId: Long, bssid: String)
@@ -194,6 +157,4 @@ interface EnvironmentDao {
     @Query("UPDATE location_records SET lat = :lat, lng = :lng, placeName = :placeName, remark = :remark, selectedWifiBssid = :selectedWifiBssid, selectedBluetoothAddress = :selectedBluetoothAddress, selectedCellKey = :selectedCellKey WHERE id = :id")
     suspend fun updateMetadata(id: Long, lat: Double, lng: Double, placeName: String, remark: String, selectedWifiBssid: String?, selectedBluetoothAddress: String?, selectedCellKey: String?)
 
-    @Query("UPDATE location_records SET lat = :lat, lng = :lng WHERE id = :id")
-    suspend fun updateCoordinates(id: Long, lat: Double, lng: Double)
 }

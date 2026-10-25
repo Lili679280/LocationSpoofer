@@ -5,19 +5,9 @@ package com.vincenthzr.locationspoofer.vendor
  * xposed 模块的厂商级适配器（`matches()`）和 App 的"本机系统"显示都走这里，改识别规则只改这一处。
  *
  * 识别顺序即优先级：先认 ROM 自身暴露的标识属性，属性被裁剪时再按厂商 / 品牌名兜底。
- * 新增一个家族：在 [RomFamily] 加一项、在 [familyOf] 加识别条件（需要读新的系统属性时同步加到 [PROBED_PROPS]），
- * 并在 [VendorScheme.forFamily] 里指定它用哪个适配器。
+ * 新增一个家族：在 [RomFamily] 加一项、在 [familyOf] 加识别条件（需要读新的系统属性时同步加到 [PROBED_PROPS]）。
  */
 object RomRules {
-    /** ColorOS 16 真机属性为 V16.0.0；同时限定 Android API，避免跨版本套用私有接口。 */
-    fun isColorOs16(profile: VendorProfile): Boolean {
-        val version = profile.prop("ro.build.version.oplusrom")
-            .ifBlank { profile.prop("ro.build.version.opporom") }
-        val major = version.dropWhile { !it.isDigit() }.takeWhile { it.isDigit() }.toIntOrNull()
-        return profile.family == RomFamily.COLOROS && profile.sdkInt == 36 && major == 16
-    }
-
-
     /** 采集设备画像时会尝试读取的系统属性——各 OEM 用来标识自身 ROM 与版本的关键属性都放这里。 */
     val PROBED_PROPS = listOf(
         // 小米 HyperOS / MIUI

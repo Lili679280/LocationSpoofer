@@ -10,7 +10,6 @@ data class HookStatusReport(
     val process: String,
     val updatedAt: Long,
     val vendorId: String,
-    val manualVendor: Boolean,
     val system: String,
     /** 配置通道与发布时刻，未收到配置时为空；字段名兼容旧诊断报告。 */
     val configPath: String,
@@ -65,7 +64,6 @@ data class HookStatusReport(
                 process = json.getString("process"),
                 updatedAt = json.optLong("updated_at"),
                 vendorId = vendor.optString("id"),
-                manualVendor = vendor.optBoolean("manual"),
                 system = json.optString("system"),
                 configPath = json.optJSONObject("config")?.optString("path").orEmpty(),
                 configModified = json.optJSONObject("config")?.optLong("modified") ?: 0L,

@@ -14,21 +14,10 @@ android {
         minSdk = 26
     }
 
-    // 与 app/build.gradle.kts 中的 scheme 维度保持一致
-    flavorDimensions += "scheme"
-    productFlavors {
-        create("global") {
-            dimension = "scheme"
-            buildConfigField("boolean", "GLOBAL_SCHEME", "true")
-        }
-    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-    buildFeatures {
-        buildConfig = true
     }
 }
 

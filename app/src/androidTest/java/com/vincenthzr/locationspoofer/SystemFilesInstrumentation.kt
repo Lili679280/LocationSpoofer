@@ -69,25 +69,23 @@ class SystemFilesInstrumentation : Instrumentation() {
                 done
             """.trimIndent())
             check(noLegacyTmp != "ERROR") { "Legacy tmp artifacts remain or root access is unavailable" }
-            if (BuildConfig.GLOBAL_SCHEME) {
-                val reports = runBlocking {
-                    val repository = HookStatusRepository(root)
-                    // Reconnecting the app may republish its snapshot; status files are debounced.
-                    // Wait for that publication instead of comparing an immediately stale report.
-                    repeat(40) {
-                        val current = repository.readAll()
-                        val latest = service.getRemotePreferences(FrameworkConfigChannel.GROUP)
-                            .getString(FrameworkConfigChannel.SNAPSHOT_KEY, null)
-                            ?.let { JSONObject(it).getLong("published_at") }
-                        if (latest != null && current.values.all {
-                                it?.configPath?.startsWith("libxposed:") == true && it.configModified == latest
-                            }) return@runBlocking current
-                        delay(250)
-                    }
-                    error("System processes have not converged on the latest publication; retry while coordinates are stationary")
+            val reports = runBlocking {
+                val repository = HookStatusRepository(root)
+                // Reconnecting the app may republish its snapshot; status files are debounced.
+                // Wait for that publication instead of comparing an immediately stale report.
+                repeat(40) {
+                    val current = repository.readAll()
+                    val latest = service.getRemotePreferences(FrameworkConfigChannel.GROUP)
+                        .getString(FrameworkConfigChannel.SNAPSHOT_KEY, null)
+                        ?.let { JSONObject(it).getLong("published_at") }
+                    if (latest != null && current.values.all {
+                            it?.configPath?.startsWith("libxposed:") == true && it.configModified == latest
+                        }) return@runBlocking current
+                    delay(250)
                 }
-                output.putString("receivers", reports.keys.joinToString())
+                error("System processes have not converged on the latest publication; retry while coordinates are stationary")
             }
+            output.putString("receivers", reports.keys.joinToString())
             output.putString("transport", if (file.isEmpty()) "remote-preferences" else "remote-file")
             output.putString("result", "PASS")
             finish(-1, output)

@@ -22,12 +22,6 @@ object SystemHookUtils {
     /**
      * 跨机型通用的基础豁免包名：本项目自身、系统核心进程、GMS、Qualcomm 定位 HAL 服务等——
      * 在任何 Android 设备上都存在、都不该被模拟的包。
-     *
-     * 厂商自有的定位融合 / 场景感知 / 省电策略服务（例如小米的 MetokNLP）不再堆在这里，
-     * 改为在对应的 `hooks/vendor/profiles/XxxVendor.kt` 里通过
-     * [com.vincenthzr.locationspoofer.xposed.hooks.vendor.SystemHookVendor.additionalExemptPackages]
-     * 声明——同一个厂商专属的豁免名单不该出现在所有机型都会用到的通用名单里，否则每加一个新机型
-     * 的专属豁免又会回到"全堆在一起"的老路。
      */
     private val BASE_EXEMPT_PACKAGES = setOf(
         "com.vincenthzr.locationspoofer",
@@ -46,13 +40,12 @@ object SystemHookUtils {
 
     /**
      * 系统豁免包名：绝对不进行模拟，保证系统基础运行与自身数据采集不受污染。
-     * = 通用基线 [BASE_EXEMPT_PACKAGES] ∪ 当前机型通过 vendor 适配层追加的专属豁免包名
-     * （[com.vincenthzr.locationspoofer.xposed.hooks.vendor.VendorRegistry.additionalExemptPackages]）。
+     * = 通用基线 [BASE_EXEMPT_PACKAGES] 减去当前机型取消豁免的包名
+     * （[com.vincenthzr.locationspoofer.xposed.hooks.vendor.VendorRegistry.removedBaseExemptPackages]）。
      * 首次访问时求值并缓存，之后每次调用零额外开销。
      */
     val EXEMPT_PACKAGES: Set<String> by lazy {
-        val registry = com.vincenthzr.locationspoofer.xposed.hooks.vendor.VendorRegistry
-        (BASE_EXEMPT_PACKAGES - registry.removedBaseExemptPackages) + registry.additionalExemptPackages
+        BASE_EXEMPT_PACKAGES - com.vincenthzr.locationspoofer.xposed.hooks.vendor.VendorRegistry.removedBaseExemptPackages
     }
 
     /** 缓存的 system_server 系统级 Context，见类注释里 `@SuppressLint("StaticFieldLeak")` 的说明。 */

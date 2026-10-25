@@ -45,15 +45,4 @@ class RomRulesTest {
         assertEquals("Android 15", profile("Google").systemLabel)
     }
 
-    @Test
-    fun `every family maps to a concrete adapter scheme`() {
-        for (family in RomFamily.entries) {
-            val scheme = VendorScheme.forFamily(family)
-            assert(scheme != VendorScheme.AUTO) { "$family -> AUTO" }
-        }
-        assertEquals(VendorScheme.AOSP, VendorScheme.fromId("aosp"))
-        // 已移除的旧适配器 id（旧版本存下来的设置）回落到自动识别
-        assertEquals(VendorScheme.AUTO, VendorScheme.fromId("hyperos"))
-        assertEquals(VendorScheme.AUTO, VendorScheme.fromId("no-such-id"))
-    }
 }

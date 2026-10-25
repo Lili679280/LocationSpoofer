@@ -9,7 +9,7 @@ class HookStatusReportTest {
 
     private val sample = """
         {"format":1,"process":"SYSTEM_SERVER","updated_at":1000,
-         "vendor":{"id":"hyperos","family":"HYPEROS_MIUI","manual":false},
+         "vendor":{"id":"aosp","family":"AOSP"},
          "system":"HyperOS 4.0 · Android 17","model":"2509FPN0BC",
          "components":[
            {"name":"WIFI_SERVICE","found":true,"searched":true,"class":"com.android.server.wifi.WifiServiceImpl",
@@ -27,7 +27,7 @@ class HookStatusReportTest {
     fun `parses a report and classifies each component`() {
         val report = HookStatusReport.parse(sample)!!
         assertEquals("SYSTEM_SERVER", report.process)
-        assertEquals("hyperos", report.vendorId)
+        assertEquals("aosp", report.vendorId)
         val states = report.components.associate { it.name to it.state }
         assertEquals(HookStatusReport.State.HOOKED, states["WIFI_SERVICE"])
         assertEquals(HookStatusReport.State.HOOKED, states["CONNECTIVITY_SERVICE"]) // 个别备用方法名 ×0 不影响

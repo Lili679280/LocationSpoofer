@@ -56,7 +56,7 @@ internal fun LocationHooker.hookBluetoothLE(
                     }
                     val callback = chain.args.firstOrNull { isScanCallback(it) }
                         ?: chain.args.lastOrNull {
-                            it != null && it !is List<*> && it !is java.util.Collection<*> &&
+                            it != null && it !is List<*> && it !is Collection<*> &&
                                     !it.javaClass.name.contains("ScanFilter") &&
                                     !it.javaClass.name.contains("ScanSettings") &&
                                     !it.javaClass.name.contains("PendingIntent") &&

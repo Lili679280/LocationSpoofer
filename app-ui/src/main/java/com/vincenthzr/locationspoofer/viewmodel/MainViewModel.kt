@@ -9,7 +9,6 @@ import com.vincenthzr.locationspoofer.data.db.LocationRecord
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.AppMapType
 import com.vincenthzr.locationspoofer.data.model.MapEngine
-import com.vincenthzr.locationspoofer.vendor.VendorScheme
 import com.vincenthzr.locationspoofer.utils.GaitTemplate
 import com.vincenthzr.locationspoofer.data.motion.MotionController
 import com.vincenthzr.locationspoofer.data.repository.LocationRepository
@@ -77,7 +76,6 @@ class MainViewModel(
             amapApiKey = settingsRepository.getAmapApiKey(),
             baiduApiKey = settingsRepository.getBaiduApiKey(),
             googleApiKey = settingsRepository.getGoogleApiKey(),
-            vendorScheme = VendorScheme.fromId(settingsRepository.getVendorOverride()),
             debugDumpSystemServices = settingsRepository.debugDumpSystemServices,
             realismLevel = settingsRepository.realismLevel,
             speedFluctuationPct = settingsRepository.speedFluctuationPct,
@@ -92,7 +90,6 @@ class MainViewModel(
             appCoordinateSystems = settingsRepository.getAppCoordinateSystems(),
             systemHookPackages = settingsRepository.getSystemHookPackages(),
             isSystemHookGlobalMode = settingsRepository.isSystemHookGlobalMode,
-            forceLocationEnabled = settingsRepository.forceLocationEnabled,
             mockWifi = settingsRepository.mockWifi,
             mockCell = settingsRepository.mockCell,
             mockBluetooth = settingsRepository.mockBluetooth,

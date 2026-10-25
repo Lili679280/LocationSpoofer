@@ -30,16 +30,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 // MainViewModel 的路线规划、收藏位置/路线与自动巡航相关扩展函数
 
-internal fun MainViewModel.enterRoutePlanning() {
-    _uiState.update {
-        it.copy(
-            routePlanStage = RoutePlanStage.SELECTING,
-            selectedCollectionRouteId = null,
-            routePoints = emptyList()
-        )
-    }
-}
-
 /** 地图中心确认添加路点 */
 
 internal fun MainViewModel.addRoutePoint(lat: Double, lng: Double) {
@@ -617,16 +607,6 @@ private fun MainViewModel.startSimulationWithPoints(pointsToRun: List<RoutePoint
 
 /** 停止路线模拟，重置所有状态 */
 
-internal fun MainViewModel.cancelRoutePlanning() {
-    _uiState.update {
-        it.copy(
-            routePlanStage = RoutePlanStage.IDLE,
-            routePoints = emptyList(),
-            routeRunMode = RouteRunMode.LOOP
-        )
-    }
-}
-
 internal fun MainViewModel.stopRoutePlanning() {
     settingsRepository.isSpoofingActive = false
     locationSyncJob?.cancel()
@@ -808,7 +788,6 @@ internal fun MainViewModel.loadSavedRoute(route: com.vincenthzr.locationspoofer.
 
 // 搜索
 
-
 // 内部工具
 
 /**
@@ -873,24 +852,3 @@ private fun MainViewModel.updatePosition(lat: Double, lng: Double, bearing: Floa
     }
 }
 
-private fun MainViewModel.haversineMeters(a: RoutePoint, b: RoutePoint): Double {
-    val R = 6378137.0
-    val lat1 = Math.toRadians(a.lat);
-    val lat2 = Math.toRadians(b.lat)
-    val dLat = Math.toRadians(b.lat - a.lat);
-    val dLng = Math.toRadians(b.lng - a.lng)
-    val h = kotlin.math.sin(dLat / 2).let { it * it } +
-            kotlin.math.cos(lat1) * kotlin.math.cos(lat2) * kotlin.math.sin(dLng / 2)
-        .let { it * it }
-    return 2 * R * kotlin.math.atan2(kotlin.math.sqrt(h), kotlin.math.sqrt(1 - h))
-}
-
-private fun MainViewModel.bearingBetween(from: RoutePoint, to: RoutePoint): Double {
-    val lat1 = Math.toRadians(from.lat)
-    val lat2 = Math.toRadians(to.lat)
-    val dLng = Math.toRadians(to.lng - from.lng)
-    val x = kotlin.math.sin(dLng) * kotlin.math.cos(lat2)
-    val y = kotlin.math.cos(lat1) * kotlin.math.sin(lat2) -
-            kotlin.math.sin(lat1) * kotlin.math.cos(lat2) * kotlin.math.cos(dLng)
-    return (Math.toDegrees(kotlin.math.atan2(x, y)) + 360) % 360
-}

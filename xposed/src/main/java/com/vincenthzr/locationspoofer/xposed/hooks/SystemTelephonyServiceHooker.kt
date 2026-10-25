@@ -166,7 +166,7 @@ internal fun LocationHooker.hookSystemTelephonyService(classLoader: ClassLoader)
                                 val fakeIdentity = this@hookSystemTelephonyService.constructCellIdentityByType(
                                     "GSM", cellIdentityGsmClass, 460, "460", 0, "00", lac, cid, 0
                                 )
-                                if (fakeIdentity != null && returnType.isInstance(fakeIdentity)) {
+                                if (returnType.isInstance(fakeIdentity)) {
                                     sysLog("[SysCell] Dispatched fake CellIdentity to ${explicitPkg ?: "caller"} (lac=$lac, cid=$cid)")
                                     return@hookAllMethods fakeIdentity
                                 }

@@ -80,8 +80,6 @@ class RootManager {
 
     fun executeCommand(command: String): String = runCommand(command, null)
 
-    fun executeCommandWithInput(command: String, input: String): String = runCommand(command, input)
-
     private fun runCommand(command: String, input: String?): String {
         return try {
             val process = ProcessBuilder("su", "-c", command).redirectErrorStream(true).start()

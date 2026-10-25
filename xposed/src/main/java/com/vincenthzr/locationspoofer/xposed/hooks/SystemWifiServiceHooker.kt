@@ -332,7 +332,7 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
                 if (returnType != null && returnType.name.contains("ParceledListSlice")) {
                     try {
                         val slice = XposedHelpers.newInstance(returnType, fakeList)
-                        if (slice != null && returnType.isInstance(slice)) {
+                        if (returnType.isInstance(slice)) {
                             return@hookAllMethods slice
                         }
                     } catch (t: Throwable) {
@@ -344,7 +344,7 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
                 if (realResult != null && realResult.javaClass.name.contains("ParceledListSlice")) {
                     try {
                         val slice = XposedHelpers.newInstance(realResult.javaClass, fakeList)
-                        if (slice != null && (returnType == null || returnType.isInstance(slice))) {
+                        if (returnType == null || returnType.isInstance(slice)) {
                             return@hookAllMethods slice
                         }
                     } catch (t: Throwable) {
@@ -357,7 +357,7 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
                 if (sliceClass != null && (returnType == null || returnType.isAssignableFrom(sliceClass))) {
                     try {
                         val slice = XposedHelpers.newInstance(sliceClass, fakeList)
-                        if (slice != null) return@hookAllMethods slice
+                        return@hookAllMethods slice
                     } catch (_: Throwable) {}
                 }
 

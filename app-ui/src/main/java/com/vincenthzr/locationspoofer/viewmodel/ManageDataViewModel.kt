@@ -35,12 +35,6 @@ class ManageDataViewModel(private val environmentDao: EnvironmentDao) : ViewMode
         }
     }
 
-    fun deleteManageData(ids: List<Long>) {
-        viewModelScope.launch(Dispatchers.IO) {
-            environmentDao.deleteLocations(ids)
-        }
-    }
-
     fun deleteManageDataSingle(id: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             environmentDao.deleteLocation(id)
@@ -135,12 +129,6 @@ class ManageDataViewModel(private val environmentDao: EnvironmentDao) : ViewMode
         }
     }
 
-    fun updateSelectedWifiBssid(locationId: Long, selectedBssid: String?) {
-        viewModelScope.launch(Dispatchers.IO) {
-            environmentDao.updateSelectedWifi(locationId, selectedBssid)
-        }
-    }
-
     fun saveOrUpdateLocationCell(
         locationId: Long,
         cellKey: String,
@@ -203,12 +191,6 @@ class ManageDataViewModel(private val environmentDao: EnvironmentDao) : ViewMode
         }
     }
 
-    fun updateSelectedCellKey(locationId: Long, selectedCellKey: String?) {
-        viewModelScope.launch(Dispatchers.IO) {
-            environmentDao.updateSelectedCell(locationId, selectedCellKey)
-        }
-    }
-
     fun saveOrUpdateLocationBluetooth(
         locationId: Long,
         address: String,
@@ -247,16 +229,4 @@ class ManageDataViewModel(private val environmentDao: EnvironmentDao) : ViewMode
         }
     }
 
-    fun updateSelectedBluetoothAddress(locationId: Long, selectedBluetoothAddress: String?) {
-        viewModelScope.launch(Dispatchers.IO) {
-            environmentDao.updateSelectedBluetooth(locationId, selectedBluetoothAddress)
-        }
-    }
-
-    fun clearAllManageData() {
-        viewModelScope.launch(Dispatchers.IO) {
-            environmentDao.clearCollectionRoutes()
-            environmentDao.clearAll()
-        }
-    }
 }

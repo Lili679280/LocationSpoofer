@@ -41,7 +41,6 @@ import com.vincenthzr.locationspoofer.data.model.MapEngine
 import com.vincenthzr.locationspoofer.progress.AdaptationProgress
 import com.vincenthzr.locationspoofer.progress.AdaptationProgressSource
 import com.vincenthzr.locationspoofer.vendor.VendorProfile
-import com.vincenthzr.locationspoofer.ui.screen.FooterLinks
 import com.vincenthzr.locationspoofer.ui.screen.LANGUAGES
 import com.vincenthzr.locationspoofer.ui.screen.UpdateCheckCard
 import com.vincenthzr.locationspoofer.ui.screen.isNewerVersion
@@ -64,7 +63,7 @@ fun InfoTab(
     onNavigateToUpdate: () -> Unit = {},
     onNavigateToLanguage: () -> Unit = {},
     onNavigateToMapEngine: () -> Unit = {},
-    onNavigateToVendorScheme: () -> Unit = {},
+    onNavigateToSystemAdaptation: () -> Unit = {},
     onNavigateToMotionRealism: () -> Unit = {},
     onNavigateToEnvTokens: () -> Unit = {}
 ) {
@@ -94,7 +93,6 @@ fun InfoTab(
     val statusBroken = stringResource(R.string.progress_status_broken)
     val statusUnverified = stringResource(R.string.progress_status_unverified)
     val adaptationStatusChip = remember {
-        if (!BuildConfig.GLOBAL_SCHEME) return@remember null
         val markdown = AdaptationProgressSource(progressContext).local().markdown
         val family = VendorProfile.current.family
         when (AdaptationProgress.findGlobalSystem(markdown, family.progressKeywords)?.status) {
@@ -244,7 +242,7 @@ fun InfoTab(
                             tint = AccentGreen,
                             title = stringResource(R.string.system_adaptation_title),
                             previewChip = adaptationStatusChip,
-                            onClick = onNavigateToVendorScheme
+                            onClick = onNavigateToSystemAdaptation
                         )
                         SettingsEntryDivider()
                         SettingsEntryRow(
@@ -255,12 +253,6 @@ fun InfoTab(
                         )
                     }
                 }
-            }
-
-            // 3. 底部开源协议与项目链接
-            item {
-                Spacer(Modifier.height(6.dp))
-                FooterLinks(isDark = isDark)
             }
         }
     }

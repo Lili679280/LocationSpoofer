@@ -180,18 +180,14 @@ class GMapControllerImpl(
 
     init {
         map.setOnCameraMoveListener {
-            val target = map.cameraPosition?.target
-            if (target != null) {
-                val gcj = wgs84ToGcj02(target.latitude, target.longitude)
-                cameraMoveListener?.invoke(gcj.first, gcj.second)
-            }
+            val target = map.cameraPosition.target
+            val gcj = wgs84ToGcj02(target.latitude, target.longitude)
+            cameraMoveListener?.invoke(gcj.first, gcj.second)
         }
         map.setOnCameraIdleListener {
-            val target = map.cameraPosition?.target
-            if (target != null) {
-                val gcj = wgs84ToGcj02(target.latitude, target.longitude)
-                cameraFinishListener?.invoke(gcj.first, gcj.second)
-            }
+            val target = map.cameraPosition.target
+            val gcj = wgs84ToGcj02(target.latitude, target.longitude)
+            cameraFinishListener?.invoke(gcj.first, gcj.second)
         }
     }
 

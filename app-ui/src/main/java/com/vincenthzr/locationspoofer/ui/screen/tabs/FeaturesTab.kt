@@ -25,11 +25,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.vincenthzr.locationspoofer.ui.BuildConfig
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.screen.AppCoordinateConfigCard
-import com.vincenthzr.locationspoofer.ui.screen.FooterLinks
 import com.vincenthzr.locationspoofer.ui.screen.ImportExportDataCard
 import com.vincenthzr.locationspoofer.ui.screen.ManageDataCard
 import com.vincenthzr.locationspoofer.ui.screen.ScannerMapCard
@@ -206,15 +204,13 @@ fun FeaturesTab(
                     )
                 }
 
-                // 4. 系统级模拟（全局 / 指定应用），仅全局方案
-                if (BuildConfig.GLOBAL_SCHEME) {
-                    item {
-                        SystemHookAppsConfigCard(
-                            uiState = uiState,
-                            isDark = isDark,
-                            onClick = onNavigateToSystemHookApps
-                        )
-                    }
+                // 4. 系统级模拟（所有应用 / 指定应用）
+                item {
+                    SystemHookAppsConfigCard(
+                        uiState = uiState,
+                        isDark = isDark,
+                        onClick = onNavigateToSystemHookApps
+                    )
                 }
 
                 // 5. 导入与导出数据

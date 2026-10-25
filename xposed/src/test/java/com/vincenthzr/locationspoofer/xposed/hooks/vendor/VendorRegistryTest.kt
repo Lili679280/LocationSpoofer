@@ -2,7 +2,6 @@ package com.vincenthzr.locationspoofer.xposed.hooks.vendor
 
 import com.vincenthzr.locationspoofer.vendor.RomFamily
 import com.vincenthzr.locationspoofer.vendor.VendorProfile
-import com.vincenthzr.locationspoofer.vendor.VendorScheme
 import com.vincenthzr.locationspoofer.xposed.hooks.vendor.profiles.AospVendor
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -28,30 +27,11 @@ class VendorRegistryTest {
     }
 
     @Test
-    fun `automatic selection matches what the app shows for every family`() {
-        // App 的"系统适配"页用 VendorScheme.forFamily 显示本机会用哪个适配器，两边必须一致
-        for ((family, profile) in samples) {
-            assertEquals(family.name, VendorScheme.forFamily(family).id, VendorRegistry.select(profile, null).id)
-        }
-    }
-
-    @Test
-    fun `every selectable scheme has a registered adapter`() {
-        val ids = VendorRegistry.ALL.map { it.id }
-        for (scheme in VendorScheme.entries - VendorScheme.AUTO) {
-            assertTrue("no adapter for ${scheme.id}", scheme.id in ids)
-        }
-        assertEquals("adapter ids must be unique", ids.size, ids.toSet().size)
-    }
-
-    @Test
-    fun `only the aosp baseline remains and old adapter ids fall back to it`() {
+    fun `every family falls back to the aosp baseline`() {
         assertEquals(listOf("aosp"), VendorRegistry.ALL.map { it.id })
-        val xiaomi = samples.getValue(RomFamily.HYPEROS_MIUI)
-        val vivo = samples.getValue(RomFamily.ORIGINOS_FUNTOUCH)
-        assertEquals("aosp", VendorRegistry.select(xiaomi, "auto").id)
-        assertEquals("aosp", VendorRegistry.select(xiaomi, "hyperos").id)
-        assertEquals("aosp", VendorRegistry.select(vivo, null).id)
+        for ((family, profile) in samples) {
+            assertEquals(family.name, "aosp", VendorRegistry.select(profile).id)
+        }
     }
 
     @Test

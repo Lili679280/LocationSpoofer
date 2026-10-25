@@ -51,18 +51,8 @@ android {
         }
     }
 
-    // 模拟方案维度：只保留 global（Hook system_server 等系统进程，对全设备生效，可在软件里指定只模拟哪些应用）；
-    // 原来的 scoped（非全局）方案已移除。保留这个维度只是为了不改变各模块的变体名（assembleGlobalDebug 等）。
-    // app / app-ui / core-data / xposed 四个模块必须声明完全相同的维度与 flavor，否则变体无法对齐。
-    flavorDimensions += "scheme"
-    productFlavors {
-        create("global") {
-            dimension = "scheme"
-            buildConfigField("boolean", "GLOBAL_SCHEME", "true")
-        }
-    }
 
-    // CI 用环境变量（见 .github/workflows/release.yml），本地用仓库根目录的 keystore.properties（已被 gitignore）
+    // 签名：优先读环境变量，本地用仓库根目录的 keystore.properties（已被 gitignore）
     val keystoreProps = Properties().apply {
         val f = rootProject.file("keystore.properties")
         if (f.exists()) f.inputStream().use { load(it) }

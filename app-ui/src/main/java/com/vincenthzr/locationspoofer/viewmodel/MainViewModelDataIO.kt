@@ -16,18 +16,6 @@ import kotlinx.serialization.decodeFromString
 
 // MainViewModel 的环境数据序列化、导出与导入相关扩展函数
 
-internal fun MainViewModel.parseRoutePoints(json: String): List<RoutePoint> {
-    return try {
-        val arr = org.json.JSONArray(json)
-        (0 until arr.length()).map { i ->
-            val obj = arr.getJSONObject(i)
-            RoutePoint(obj.getDouble("lat"), obj.getDouble("lng"))
-        }
-    } catch (e: Exception) {
-        emptyList()
-    }
-}
-
 internal suspend fun MainViewModel.saveEnvironmentData(
     lat: Double,
     lng: Double,
@@ -316,7 +304,6 @@ internal fun MainViewModel.locationToJson(
         put("nearbyWifi", nearbyArr)
     }
     val wifiArr = wifiResultObj // 根据需要赋值以匹配其余的方法变量，或者直接返回 wifiResultObj.toString()
-
 
     val cellMap = mutableMapOf<String, com.vincenthzr.locationspoofer.data.db.LocationWithCell>()
     val cellDbms = mutableMapOf<String, Double>()

@@ -168,8 +168,6 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
         settingsManager.getSystemHookPackages().forEach { systemHookPackagesArr.put(it) }
         json.put("system_hook_packages", systemHookPackagesArr)
         json.put("system_hook_global_mode", settingsManager.isSystemHookGlobalMode)
-        json.put("vendor_override", settingsManager.vendorOverride)
-        json.put("force_location_enabled", settingsManager.forceLocationEnabled)
         json.put("debug_dump_system_services", settingsManager.debugDumpSystemServices)
         // 运动真实度：Xposed 端据此给速度、步频、海拔、加速度加起伏；随机强度与速度浮动在会话内取开始时的快照
         json.put("realism_level", SpoofingState.realismLevel.takeIf { it >= 0 } ?: settingsManager.realismLevel)

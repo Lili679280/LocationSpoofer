@@ -152,7 +152,6 @@ object HookStatus {
             put("vendor", JSONObject().apply {
                 put("id", active.id)
                 put("family", active.family.name)
-                put("manual", VendorRegistry.isManualOverride)
             })
             configPath?.let { put("config", JSONObject().put("path", it).put("modified", configModified)) }
             put("system", profile.systemLabel)

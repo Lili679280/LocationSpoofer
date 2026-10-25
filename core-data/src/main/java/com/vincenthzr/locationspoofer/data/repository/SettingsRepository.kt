@@ -74,12 +74,6 @@ class SettingsRepository(private val settingsManager: SettingsManager) {
         settingsManager.mapEngine = value
     }
 
-    fun getVendorOverride(): String = settingsManager.vendorOverride
-
-    fun setVendorOverride(value: String) {
-        settingsManager.vendorOverride = value
-    }
-
     var debugDumpSystemServices: Boolean
         get() = settingsManager.debugDumpSystemServices
         set(value) {
@@ -107,10 +101,6 @@ class SettingsRepository(private val settingsManager: SettingsManager) {
         set(value) {
             settingsManager.isSystemHookGlobalMode = value
         }
-
-    var forceLocationEnabled: Boolean
-        get() = settingsManager.forceLocationEnabled
-        set(value) { settingsManager.forceLocationEnabled = value }
 
     var isSpoofingActive: Boolean
         get() = settingsManager.isSpoofingActive

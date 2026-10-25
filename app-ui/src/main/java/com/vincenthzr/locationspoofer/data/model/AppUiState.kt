@@ -4,7 +4,6 @@ import androidx.annotation.StringRes
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.utils.GaitTemplate
 import com.vincenthzr.locationspoofer.utils.AltitudeModel
-import com.vincenthzr.locationspoofer.vendor.VendorScheme
 import com.vincenthzr.locationspoofer.utils.MotionRealism
 
 enum class WifiLoadStatus { IDLE, LOADING, DONE }
@@ -99,7 +98,6 @@ data class AppState(
     val isLanguageSet: Boolean = true, // 默认为 true，以避免在不需要时发生闪烁
     val currentLanguage: String = "",
     val hasRootAccess: Boolean = false,
-    val vendorScheme: VendorScheme = VendorScheme.AUTO,
     val debugDumpSystemServices: Boolean = false,
     val realismLevel: Int = MotionRealism.DEFAULT_LEVEL_ID,
     val speedFluctuationPct: Int = MotionRealism.DEFAULT_SPEED_FLUCTUATION_PCT,
@@ -123,7 +121,6 @@ data class AppState(
     val wifiLoadStatus: WifiLoadStatus = WifiLoadStatus.IDLE,
     val wifiApCount: Int = 0,
     val savedLocations: List<SavedLocation> = emptyList(),
-    val searchKeyword: String = "",
     val searchMode: SearchMode = SearchMode.NETWORK,
     val searchResults: List<SavedLocation> = emptyList(),
     val simBearing: Float = 0f,
@@ -180,7 +177,6 @@ data class AppState(
     val systemHookPackages: Set<String> = emptySet(),
     /** 是否开启全局模拟模式（除自身与系统核心组件外对全设备所有应用生效） */
     val isSystemHookGlobalMode: Boolean = false,
-    val forceLocationEnabled: Boolean = false,
     /** "系统级模拟应用"选择页展示的全量已安装 App 列表，进入该页时按需加载 */
     val installedAppsForSystemHook: List<AppInfoItem> = emptyList(),
     val isLoadingInstalledApps: Boolean = false,

@@ -71,8 +71,7 @@
     <string name="hook_status_title">Hook 运行状态</string>
     <string name="hook_status_summary">%1$d/%2$d 个组件已挂载</string>
     <string name="hook_status_summary_none">暂无报告</string>
-    <string name="hook_status_adapter_auto">适配器：%1$s（自动识别）</string>
-    <string name="hook_status_adapter_manual">适配器：%1$s（手动指定）</string>
+    <string name="hook_status_adapter">适配器：%1$s</string>
     <string name="hook_status_no_report">未读取到报告：可能尚未生成，或 Root 无法访问该进程的报告目录。请检查 Root 权限、LSPosed 作用域及重启后的状态。</string>
     <string name="hook_status_stale">这份报告来自上一次开机，尚未读取到本次开机的新报告。</string>
     <string name="hook_status_updated_at">更新于 %1$s</string>
@@ -203,8 +202,6 @@
     <string name="features_header">功能新增与优化</string>
     <string name="fixes_header">缺陷修复</string>
     <string name="others_header">其他更新</string>
-    <string name="brand_github">GitHub</string>
-    <string name="brand_telegram">Telegram</string>
     <string name="custom_wigle_token">WiGLE API 密钥 (Basic Auth Base64)</string>
     <string name="custom_wigle_token_hint">输入您的 WiGLE 密钥...</string>
     <string name="custom_opencellid_token">OpenCellID API 密钥</string>

@@ -26,6 +26,9 @@ import kotlin.coroutines.resume
 @android.annotation.SuppressLint("MissingPermission", "NewApi")
 class EnvironmentScanner(private val context: Context) {
 
+    // startScan / connectionInfo / ScanResult.SSID 在 minSdk 26 上没有可替代的 API，
+    // allNetworks 用来判断"任意一个 Wi-Fi 网络已连接"（蜂窝同时在线时 activeNetwork 不一定是 Wi-Fi）
+    @Suppress("DEPRECATION")
     @SuppressLint("MissingPermission")
     suspend fun scanWifi(): String = withContext(Dispatchers.IO) {
         val wifiManager =
@@ -34,25 +37,12 @@ class EnvironmentScanner(private val context: Context) {
             context.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
         val resultObj = JSONObject()
         try {
-            var isWifiConnected = false
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                val networks = connectivityManager.allNetworks
-                for (network in networks) {
-                    val caps = connectivityManager.getNetworkCapabilities(network)
-                    if (caps != null && caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)) {
-                        // 确保这个 Wi-Fi 网络具备基础的连接能力
-                        if (caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) ||
-                            caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-                        ) {
-                            isWifiConnected = true
-                            break
-                        }
-                    }
-                }
-            } else {
-                val activeNetwork = connectivityManager.activeNetworkInfo
-                isWifiConnected =
-                    activeNetwork != null && activeNetwork.type == android.net.ConnectivityManager.TYPE_WIFI && activeNetwork.isConnected
+            val isWifiConnected = connectivityManager.allNetworks.any { network ->
+                val caps = connectivityManager.getNetworkCapabilities(network)
+                // 确保这个 Wi-Fi 网络具备基础的连接能力
+                caps != null && caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) &&
+                    (caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) ||
+                        caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED))
             }
 
             resultObj.put("isConnected", isWifiConnected)
@@ -145,6 +135,8 @@ class EnvironmentScanner(private val context: Context) {
         resultObj.toString()
     }
 
+    // CDMA 已被系统标为废弃，但导入 / 导出的数据格式里仍有 CDMA 基站，继续照常采集
+    @Suppress("DEPRECATION")
     @SuppressLint("MissingPermission")
     suspend fun scanCell(): String = withContext(Dispatchers.IO) {
         // 之前这里连了 Wi-Fi 就直接跳过基站扫描，但 Wi-Fi 和基站是同一个物理位置的两个
@@ -181,35 +173,6 @@ class EnvironmentScanner(private val context: Context) {
                 } else {
                     telephonyManager.allCellInfo ?: emptyList()
                 }
-
-            if (allCellInfo.isEmpty()) {
-                val cellLoc = try {
-                    telephonyManager.cellLocation
-                } catch (e: Exception) {
-                    null
-                }
-                if (cellLoc is android.telephony.gsm.GsmCellLocation) {
-                    val obj = JSONObject()
-                    obj.put("isRegistered", true)
-                    obj.put("type", "GSM")
-                    obj.put("lac", cellLoc.lac)
-                    obj.put("cid", cellLoc.cid)
-                    obj.put("psc", cellLoc.psc)
-                    obj.put("dbm", -85) // 虚拟一个信号值
-                    obj.put("mcc", 460)
-                    obj.put("mnc", 0)
-                    jsonArray.put(obj)
-                } else if (cellLoc is android.telephony.cdma.CdmaCellLocation) {
-                    val obj = JSONObject()
-                    obj.put("isRegistered", true)
-                    obj.put("type", "CDMA")
-                    obj.put("networkId", cellLoc.networkId)
-                    obj.put("systemId", cellLoc.systemId)
-                    obj.put("basestationId", cellLoc.baseStationId)
-                    obj.put("dbm", -85)
-                    jsonArray.put(obj)
-                }
-            }
 
             allCellInfo.forEach { cellInfo ->
                 val obj = JSONObject()

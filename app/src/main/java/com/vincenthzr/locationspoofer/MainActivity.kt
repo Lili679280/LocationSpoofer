@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -22,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Density
+import androidx.core.net.toUri
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.screen.BlockingScreen
 import com.vincenthzr.locationspoofer.ui.screen.InitializingScreen
@@ -35,6 +37,19 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModel()
+
+    private val runtimePermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
+            val locationGranted = results[Manifest.permission.ACCESS_FINE_LOCATION]
+                ?: (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+            if (locationGranted) checkBackgroundLocation()
+            // 悬浮窗权限与运行时权限无关，被拒绝时也照样检查
+            requestOverlayPermissionIfNeeded()
+            if (locationGranted) requestIgnoreBatteryOptimizations()
+        }
+
+    private val backgroundLocationLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     override fun attachBaseContext(newBase: Context) {
         val prefs = newBase.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
@@ -142,7 +157,7 @@ class MainActivity : ComponentActivity() {
         }
 
         if (notGranted.isNotEmpty()) {
-            requestPermissions(notGranted.toTypedArray(), 100)
+            runtimePermissionLauncher.launch(notGranted.toTypedArray())
         } else {
             checkBackgroundLocation()
             requestOverlayPermissionIfNeeded()
@@ -165,7 +180,7 @@ class MainActivity : ComponentActivity() {
             startActivity(
                 android.content.Intent(
                     android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    android.net.Uri.parse("package:$packageName")
+                    "package:$packageName".toUri()
                 )
             )
         } catch (_: Exception) {
@@ -175,42 +190,24 @@ class MainActivity : ComponentActivity() {
     private fun checkBackgroundLocation() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             if (checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), 101)
+                backgroundLocationLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
             }
         }
     }
 
+    @android.annotation.SuppressLint("BatteryLife") // 后台持续模拟需要豁免电池优化，本应用不上架 Play 商店
     private fun requestIgnoreBatteryOptimizations() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val powerManager = getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager ?: return
-            if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
-                try {
-                    val intent = android.content.Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                        data = android.net.Uri.parse("package:$packageName")
-                    }
-                    startActivity(intent)
-                } catch (_: Exception) {
-                    try {
-                        val intent = android.content.Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
-                        startActivity(intent)
-                    } catch (_: Exception) {}
-                }
-            }
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 100) {
-            val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
-            if (granted) checkBackgroundLocation()
-            // 悬浮窗权限与运行时权限无关，被拒绝时也照样检查
-            requestOverlayPermissionIfNeeded()
-            if (granted) requestIgnoreBatteryOptimizations()
+        val powerManager = getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager ?: return
+        if (powerManager.isIgnoringBatteryOptimizations(packageName)) return
+        try {
+            startActivity(
+                android.content.Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                    .setData("package:$packageName".toUri())
+            )
+        } catch (_: Exception) {
+            try {
+                startActivity(android.content.Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+            } catch (_: Exception) {}
         }
     }
 }

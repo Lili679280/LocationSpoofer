@@ -83,7 +83,6 @@ import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
-import com.vincenthzr.locationspoofer.ui.BuildConfig
 import androidx.compose.runtime.Composable
 import com.amap.api.services.core.AMapException
 import com.amap.api.services.poisearch.PoiResultV2
@@ -236,6 +235,7 @@ fun performPoiSearch(
                 }
 
                 @Deprecated("百度 SDK 已用 PoiDetailSearchResult 版本替代，接口仍要求实现")
+                @Suppress("DEPRECATION")
                 override fun onGetPoiDetailResult(p0: PoiDetailResult?) {}
                 override fun onGetPoiDetailResult(p0: PoiDetailSearchResult?) {}
                 override fun onGetPoiIndoorResult(p0: PoiIndoorResult?) {}

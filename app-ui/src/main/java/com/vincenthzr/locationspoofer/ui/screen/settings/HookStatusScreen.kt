@@ -75,10 +75,7 @@ fun HookStatusScreen(
             SettingsPageHeader(
                 title = stringResource(R.string.hook_status_title),
                 subtitle = vendorReport?.let {
-                    stringResource(
-                        if (it.manualVendor) R.string.hook_status_adapter_manual else R.string.hook_status_adapter_auto,
-                        it.vendorId
-                    )
+                    stringResource(R.string.hook_status_adapter, it.vendorId)
                 },
                 isDark = isDark,
                 onBack = onClose
