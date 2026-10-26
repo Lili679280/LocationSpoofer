@@ -7,7 +7,7 @@ import subprocess
 
 result = subprocess.run(
     ["adb", "shell", "am", "instrument", "-w",
-     "com.vincenthzr.locationspoofer.test/com.vincenthzr.locationspoofer.SystemFilesInstrumentation"],
+     "com.lili679280.locationspoofer.test/com.vincenthzr.locationspoofer.SystemFilesInstrumentation"],
     text=True, capture_output=True,
 )
 print(result.stdout, end="")

@@ -39,6 +39,7 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import java.lang.reflect.*
 import java.util.concurrent.CopyOnWriteArrayList
+import com.vincenthzr.locationspoofer.APP_PACKAGE_NAME
 
 class LocationHooker : XposedModule() {
     init {
@@ -654,7 +655,7 @@ class LocationHooker : XposedModule() {
                                     lastSpoofedLng = motion.lng
 
                                     val basePkg = currentPackageName.substringBefore(":")
-                                    if (basePkg == "com.vincenthzr.locationspoofer") {
+                                    if (basePkg == APP_PACKAGE_NAME) {
                                         continue
                                     }
 

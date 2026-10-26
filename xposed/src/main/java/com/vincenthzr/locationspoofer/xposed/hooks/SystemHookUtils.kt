@@ -6,6 +6,7 @@ import com.vincenthzr.locationspoofer.xposed.utils.SpoofedMotion
 import com.vincenthzr.locationspoofer.xposed.utils.XposedBridge
 import com.vincenthzr.locationspoofer.xposed.utils.XposedHelpers
 import org.json.JSONObject
+import com.vincenthzr.locationspoofer.APP_PACKAGE_NAME
 
 /**
  * 系统服务（system_server）调用方识别与权限判定工具
@@ -24,7 +25,7 @@ object SystemHookUtils {
      * 在任何 Android 设备上都存在、都不该被模拟的包。
      */
     private val BASE_EXEMPT_PACKAGES = setOf(
-        "com.vincenthzr.locationspoofer",
+        APP_PACKAGE_NAME,
         "android",
         "system_server",
         "system",
@@ -236,7 +237,7 @@ object SystemHookUtils {
         val cleanPkg = explicitPackage?.substringBefore(":")?.trim()
 
         // 1. 严格排除自身，绝不模拟自身
-        if (cleanPkg == "com.vincenthzr.locationspoofer" || explicitPackage == "com.vincenthzr.locationspoofer") {
+        if (cleanPkg == APP_PACKAGE_NAME || explicitPackage == APP_PACKAGE_NAME) {
             return false
         }
 
@@ -251,7 +252,7 @@ object SystemHookUtils {
         }
 
         val callingPackages = resolveCallingPackages(serviceInstance, uid)
-        if (callingPackages.any { it.substringBefore(":") == "com.vincenthzr.locationspoofer" }) {
+        if (callingPackages.any { it.substringBefore(":") == APP_PACKAGE_NAME }) {
             return false
         }
         if (callingPackages.any { EXEMPT_PACKAGES.contains(it.substringBefore(":")) }) {

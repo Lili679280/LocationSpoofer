@@ -19,8 +19,7 @@ internal object SystemFileCommands {
             $ROOT/data/local/tmp/.lsp_sepolicy_apply.sh \
             $ROOT/data/system/locationspoofer_config.json \
             $ROOT/data/system/locationspoofer_config_tmp.json \
-            $ROOT/data/system/locationspoofer_config.json.tmp.* \
-            $ROOT/data/data/com.vincenthzr.locationspoofer/files/locationspoofer_config.json
+            $ROOT/data/system/locationspoofer_config.json.tmp.*
         for domain in com.android.phone com.android.bluetooth; do
             rm -f "$ROOT/data/user_de/0/${'$'}domain/files/locationspoofer_config.json" \
                 "$ROOT/data/user_de/0/${'$'}domain/files/locationspoofer_config.json.tmp" \

@@ -28,7 +28,7 @@ android {
         System.getenv("GOOGLE_MAPS_API_KEY") ?: getLocalConfig("GOOGLE_MAPS_API_KEY") ?: ""
 
     defaultConfig {
-        applicationId = "com.vincenthzr.locationspoofer"
+        applicationId = "com.lili679280.locationspoofer" // 与 core-geo 的 APP_PACKAGE_NAME 保持一致
         testInstrumentationRunner = "com.vincenthzr.locationspoofer.SystemFilesInstrumentation"
         minSdk = 26
         targetSdk = 37

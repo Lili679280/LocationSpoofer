@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.lang.reflect.*
 import kotlin.math.*
 import io.github.libxposed.api.*
+import com.vincenthzr.locationspoofer.APP_PACKAGE_NAME
 
 /**
  * android.location.Location 对象各字段 getter 的伪造（坐标/精度/速度/航向/海拔/时间戳/mock 标志位等）。
@@ -39,7 +40,7 @@ internal fun LocationHooker.hookLocationGetters(classLoader: ClassLoader, curren
         ) { chain, method ->
             var result = chain.proceed(chain.args.toTypedArray())
 
-            if (currentPkg.substringBefore(":") == "com.vincenthzr.locationspoofer") return@hookMethod result
+            if (currentPkg.substringBefore(":") == APP_PACKAGE_NAME) return@hookMethod result
             val thisObj = chain.thisObject
             val defaultSys = when {
                 thisObj != null && (thisObj.javaClass.name.contains("amap", ignoreCase = true) || thisObj.javaClass.name.contains("autonavi", ignoreCase = true)) -> "GCJ-02"
@@ -68,7 +69,7 @@ internal fun LocationHooker.hookLocationGetters(classLoader: ClassLoader, curren
         ) { chain, method ->
             var result = chain.proceed(chain.args.toTypedArray())
 
-            if (currentPkg.substringBefore(":") == "com.vincenthzr.locationspoofer") return@hookMethod result
+            if (currentPkg.substringBefore(":") == APP_PACKAGE_NAME) return@hookMethod result
             val thisObj = chain.thisObject
             val defaultSys = when {
                 thisObj != null && (thisObj.javaClass.name.contains("amap", ignoreCase = true) || thisObj.javaClass.name.contains("autonavi", ignoreCase = true)) -> "GCJ-02"
@@ -97,7 +98,7 @@ internal fun LocationHooker.hookLocationGetters(classLoader: ClassLoader, curren
         ) { chain, method ->
             var result = chain.proceed(chain.args.toTypedArray())
 
-            if (currentPkg.substringBefore(":") == "com.vincenthzr.locationspoofer") return@hookMethod result
+            if (currentPkg.substringBefore(":") == APP_PACKAGE_NAME) return@hookMethod result
             val config = readConfig()
             if (config != null && config.optBoolean("active", false)) {
                 result = getJitteredAccuracy()
@@ -126,7 +127,7 @@ internal fun LocationHooker.hookLocationGetters(classLoader: ClassLoader, curren
         ) { chain, method ->
             var result = chain.proceed(chain.args.toTypedArray())
 
-            if (currentPkg.substringBefore(":") == "com.vincenthzr.locationspoofer") return@hookMethod result
+            if (currentPkg.substringBefore(":") == APP_PACKAGE_NAME) return@hookMethod result
             val motion = getCurrentSpoofedMotion()
             if (motion != null) {
                 result = motion.speed
@@ -155,7 +156,7 @@ internal fun LocationHooker.hookLocationGetters(classLoader: ClassLoader, curren
         ) { chain, method ->
             var result = chain.proceed(chain.args.toTypedArray())
 
-            if (currentPkg.substringBefore(":") == "com.vincenthzr.locationspoofer") return@hookMethod result
+            if (currentPkg.substringBefore(":") == APP_PACKAGE_NAME) return@hookMethod result
             val motion = getCurrentSpoofedMotion()
             if (motion != null) {
                 result = motion.bearing
@@ -248,7 +249,7 @@ internal fun LocationHooker.hookLocationGetters(classLoader: ClassLoader, curren
         ) { chain, method ->
             var result = chain.proceed(chain.args.toTypedArray())
             val config = readConfig()
-            if (config != null && config.optBoolean("active", false) && currentPkg.substringBefore(":") != "com.vincenthzr.locationspoofer") {
+            if (config != null && config.optBoolean("active", false) && currentPkg.substringBefore(":") != APP_PACKAGE_NAME) {
                 result = System.currentTimeMillis()
             }
             return@hookMethod result
@@ -262,7 +263,7 @@ internal fun LocationHooker.hookLocationGetters(classLoader: ClassLoader, curren
             ) { chain, method ->
                 var result = chain.proceed(chain.args.toTypedArray())
                 val config = readConfig()
-                if (config != null && config.optBoolean("active", false) && currentPkg.substringBefore(":") != "com.vincenthzr.locationspoofer") {
+                if (config != null && config.optBoolean("active", false) && currentPkg.substringBefore(":") != APP_PACKAGE_NAME) {
                     result = android.os.SystemClock.elapsedRealtimeNanos()
                 }
                 return@hookMethod result
@@ -277,7 +278,7 @@ internal fun LocationHooker.hookLocationGetters(classLoader: ClassLoader, curren
             ) { chain, method ->
                 var result = chain.proceed(chain.args.toTypedArray())
                 val config = readConfig()
-                if (config != null && config.optBoolean("active", false) && currentPkg.substringBefore(":") != "com.vincenthzr.locationspoofer") {
+                if (config != null && config.optBoolean("active", false) && currentPkg.substringBefore(":") != APP_PACKAGE_NAME) {
                     result = android.os.SystemClock.elapsedRealtime()
                 }
                 return@hookMethod result
@@ -291,7 +292,7 @@ internal fun LocationHooker.hookLocationGetters(classLoader: ClassLoader, curren
                 "getElapsedRealtimeAgeMillis"
             ) { chain, method ->
                 val config = readConfig()
-                if (config != null && config.optBoolean("active", false) && currentPkg.substringBefore(":") != "com.vincenthzr.locationspoofer") 0L else chain.proceed(chain.args.toTypedArray())
+                if (config != null && config.optBoolean("active", false) && currentPkg.substringBefore(":") != APP_PACKAGE_NAME) 0L else chain.proceed(chain.args.toTypedArray())
             }
         } catch (_: Throwable) {}
 
@@ -304,7 +305,7 @@ internal fun LocationHooker.hookLocationGetters(classLoader: ClassLoader, curren
             ) { chain, method ->
                 var result = chain.proceed(chain.args.toTypedArray())
                 val config = readConfig()
-                if (config != null && config.optBoolean("active", false) && currentPkg.substringBefore(":") != "com.vincenthzr.locationspoofer") {
+                if (config != null && config.optBoolean("active", false) && currentPkg.substringBefore(":") != APP_PACKAGE_NAME) {
                     val bundle = (result as? android.os.Bundle) ?: android.os.Bundle()
                     val satCount = config.optInt("satellite_count", 20)
                     bundle.putInt("satellites", satCount)
