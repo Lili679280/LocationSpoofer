@@ -285,4 +285,5 @@ git clone https://github.com/Lili679280/LocationSpoofer.git
 
 ```
 Copyright (C) 2026 SuseOAA
+Modifications Copyright (C) 2026 Lili679280
 ```
