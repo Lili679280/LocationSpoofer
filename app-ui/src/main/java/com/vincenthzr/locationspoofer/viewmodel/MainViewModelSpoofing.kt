@@ -211,6 +211,25 @@ private fun MainViewModel.syncMockSettings() {
     }
 }
 
+/** 区分基站用的字段（不含信号强度，它每轮都变） */
+private val CELL_KEY_FIELDS = listOf("type", "mcc", "mnc", "tac", "lac", "ci", "cid", "nci", "pci", "psc", "networkId", "systemId", "basestationId")
+
+/** 一次 Wi-Fi 扫描结果里所有热点的 BSSID（含已连接的那个） */
+private fun wifiBssids(wifiJson: String): List<String> = runCatching {
+    val obj = org.json.JSONObject(wifiJson)
+    buildList {
+        obj.optJSONObject("connectedWifi")?.optString("bssid")?.takeIf { it.isNotEmpty() }?.let(::add)
+        val nearby = obj.optJSONArray("nearbyWifi") ?: return@buildList
+        for (i in 0 until nearby.length()) nearby.getJSONObject(i).optString("bssid").takeIf { it.isNotEmpty() }?.let(::add)
+    }
+}.getOrDefault(emptyList())
+
+/** JSON 数组里每一项按 [key] 取出的非空标识 */
+private fun jsonArrayKeys(json: String, key: (org.json.JSONObject) -> String): List<String> = runCatching {
+    val arr = org.json.JSONArray(json)
+    (0 until arr.length()).map { key(arr.getJSONObject(it)) }.filter { it.isNotEmpty() }
+}.getOrDefault(emptyList())
+
 internal fun MainViewModel.toggleContinuousScanning() {
     val state = _uiState.value
     if (state.isStoppingCollection || state.pendingCollectionLocations.isNotEmpty() || state.pendingCollectionRoute != null) return
@@ -242,6 +261,10 @@ internal fun MainViewModel.toggleContinuousScanning() {
     }
     continuousScanJob = viewModelScope.launch(Dispatchers.IO) {
         val savedIds = linkedSetOf<Long>()
+        // 计数按设备去重：同一个热点 / 基站 / 蓝牙每轮都会再扫到，直接累加会越采越多（数据库里本来就是去重存的）
+        val seenWifi = mutableSetOf<String>()
+        val seenCells = mutableSetOf<String>()
+        val seenBluetooth = mutableSetOf<String>()
         var routeId: Long? = null
         try {
             if (state.isRouteCollection) {
@@ -271,14 +294,14 @@ internal fun MainViewModel.toggleContinuousScanning() {
                         val bluetoothJson = environmentScanner.scanBluetooth()
                         val id = saveEnvironmentData(lat, lng, wifiJson, cellJson, bluetoothJson, mergeNearby = true, collectionRouteId = routeId)
                         savedIds += id
-                        val wCount = parseWifiCount(wifiJson)
-                        val cCount = org.json.JSONArray(cellJson).length()
-                        val bCount = org.json.JSONArray(bluetoothJson).length()
+                        seenWifi += wifiBssids(wifiJson)
+                        seenCells += jsonArrayKeys(cellJson) { cell -> CELL_KEY_FIELDS.joinToString("_") { cell.opt(it)?.toString().orEmpty() } }
+                        seenBluetooth += jsonArrayKeys(bluetoothJson) { it.optString("address") }
                         _uiState.update {
                             it.copy(
-                                scannedWifiCount = it.scannedWifiCount + wCount,
-                                scannedCellCount = it.scannedCellCount + cCount,
-                                scannedBluetoothCount = it.scannedBluetoothCount + bCount
+                                scannedWifiCount = seenWifi.size,
+                                scannedCellCount = seenCells.size,
+                                scannedBluetoothCount = seenBluetooth.size
                             )
                         }
                     }
