@@ -10,7 +10,6 @@
 [![Compose](https://img.shields.io/badge/Jetpack-Compose-4285F4.svg)](https://developer.android.com/jetpack/compose)
 [![KernelSU](https://img.shields.io/badge/Root-KernelSU-orange.svg)](https://kernelsu.org)
 [![LSPosed](https://img.shields.io/badge/LSPosed-API%20101%2B-purple.svg)](https://github.com/LSPosed/LSPosed)
-[![Telegram](https://img.shields.io/badge/Telegram-Group-blue.svg)](https://t.me/+CsxZGItXdW40ZWVl)
 
 [简体中文](README.md) | [English](README_EN.md)
 
@@ -18,9 +17,9 @@
 
 ---
 
-> **📢 Join our [Telegram Group](https://t.me/+CsxZGItXdW40ZWVl) for** ~~technical discussion, updates,~~ **bragging and shitposting.**
->
-> **📖 Read the [LocationSpoofer Detailed Tutorial](https://docs.google.com/document/d/1fFEz3k7ATdN2dwY1L3RJn1QuzgokIsslNa88-vUPxPk/edit?usp=sharing)**
+> This repository is a modified version of [HuangZhuoRui/LocationSpoofer](https://github.com/HuangZhuoRui/LocationSpoofer) 3.0.0 (now archived), released separately from 4.0.0 on.
+> Main changes: map / route keys are now entered by the user, Baidu and Google route planning with walking / driving modes,
+> Pixel (Android 17) device adaptation, and simplified settings and UI. Downloads are on the [Releases](https://github.com/Lili679280/LocationSpoofer/releases) page.
 
 ---
 
@@ -60,8 +59,8 @@ Powered by **KernelSU / APatch / Magisk** for root privileges and **LSPosed (lib
 
 ### 1. Multi-Map Engines & Coordinate Adaptation
 * **Triple Engine Support**: Natively integrates AMap 3D, Baidu Maps, and Google Maps for flexible worldwide POI search and road-network routing.
-* **Out-of-the-Box & Multilingual Support**: Default "Auto Match" smoothly uses AMap across all languages (including Chinese, English, Arabic, etc.), functioning without requiring Google Play Services or proxy setups.
-* **Custom Google API Key**: No default Google Maps API Key is embedded. To use Google Maps rendering and Places global search, simply input your own Google API Key in the Settings page.
+* **Bring your own map keys**: No AMap, Baidu or Google key is built in. Enter your own keys under "Info → Map settings"; the package name and signing SHA1 can be copied from the top of that page. "Auto" picks AMap or Baidu based on which keys are filled in.
+* **Route planning**: AMap, Baidu and Google (Routes API) can all plan real road routes, for walking or driving. The Google key entered in the app is used for route planning and Places search; Google Maps rendering itself needs a key written in at build time via `GOOGLE_MAPS_API_KEY`.
 * **Smart Automatic Coordinate Adaptation (Smart Auto)**:
   * Native Android framework APIs consistently output standard `WGS-84` physical coordinates and satellite metadata;
   * Third-party map SDKs (AMap, Tencent, Baidu) and rendering layers (e.g., BaiduMap `MyLocationData` blue dot) automatically map to their respective coordinate systems (`GCJ-02` / `BD-09`), eliminating shifts and `(0.0, 0.0)` fallback pulls;
@@ -141,7 +140,7 @@ Built on modern **MVVM + Clean Architecture**, split into 6 Gradle modules by re
 | `core-data` | Android Library | The data/domain layer shared by `app`, `app-ui`, and `service`: the Room database, repositories, and core utilities such as `ConfigManager`, `RootManager`, `EnvironmentScanner` |
 | `core-geo` | Pure Kotlin/JVM | The only module in the project with no Android dependency: coordinate conversion, route geometry and the motion realism engine, plus the system detection rules shared by the hooks and the app (`vendor/`) |
 
-Both variants deliver JSON through libxposed remote configuration; hooks read an in-memory snapshot:
+Configuration is delivered as JSON through libxposed remote configuration; hooks read an in-memory snapshot:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -181,16 +180,16 @@ Both variants deliver JSON through libxposed remote configuration; hooks read an
 
 > [!NOTE]
 > **IPC Design Decision**:
-> `ConfigManager` publishes complete JSON snapshots with `XposedService.getRemotePreferences()`. UTF-8 payloads larger than 128 KiB are written to immutable framework-managed remote files before their pointers are atomically published. Both variants share this channel, without SELinux patches or public temporary configuration files.
+> `ConfigManager` publishes complete JSON snapshots with `XposedService.getRemotePreferences()`. UTF-8 payloads larger than 128 KiB are written to immutable framework-managed remote files before their pointers are atomically published. No SELinux patches or public temporary configuration files are needed.
 > Hooks load the initial snapshot during module initialization and subscribe to preference changes. Background decoding and normalization replace the memory cache; hook calls only read that cache. A background check of the preference snapshot retries early initialization failures every second. Motion delivery and service discovery retain a separate timer.
 > Private app preferences retain the latest desired state. Failed publications retry automatically, and framework reconnection republishes that state, including the latest stop or pause. Successful framework publication triggers cleanup of legacy config files, probes, and scripts. The framework persists its own configuration; this is not an entirely disk-free design.
-> The framework must implement remote configuration. After upgrading, enable the module, reboot, and start a simulation. In the global variant, Hook Status should show `libxposed:remote-preferences` or `libxposed:remote-file` with matching publication times across system processes. This transport migration still requires device verification.
+> The framework must implement remote configuration. Hook Status should show `libxposed:remote-preferences` or `libxposed:remote-file` with matching publication times across system processes.
 
-### System Adaptation (global scheme)
+### System Adaptation
 
-The global scheme hooks system services directly, and their internals differ between vendors and system versions, so each system needs to be adapted:
+The app hooks system services directly, and their internals differ between vendors and system versions, so each system needs to be adapted:
 
-* [ADAPTATION_PROGRESS.md](ADAPTATION_PROGRESS.md): real-device verification status for each system and device under both schemes (the in-app "System Adaptation → Full adaptation progress" page shows this file);
+* [ADAPTATION_PROGRESS.md](ADAPTATION_PROGRESS.md): real-device verification status for each system and device (the in-app "System Adaptation → Full adaptation progress" page shows this file);
 * [vendor/README.md](xposed/src/main/java/com/vincenthzr/locationspoofer/xposed/hooks/vendor/README.md): the adaptation framework and the **complete checklist for adding a new system**;
 * [xposed/ADAPTATION_GUIDE.md](xposed/ADAPTATION_GUIDE.md): how to locate internal system classes and methods on a real device, and how to troubleshoot with the in-app "Hook Status" page.
 
@@ -206,11 +205,15 @@ The global scheme hooks system services directly, and their internals differ bet
 
 ## Quick Start
 
-### 1. Build & Install
+### 1. Install
+
+Download the `arm64-v8a` (most phones) or `armeabi-v7a` (older 32-bit phones) APK from [Releases](https://github.com/Lili679280/LocationSpoofer/releases).
+
+Or build it yourself:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/LocationSpoofer.git
+git clone https://github.com/Lili679280/LocationSpoofer.git
 
 # 2. Build and install Debug APK
 ./gradlew installDebug
@@ -219,8 +222,9 @@ git clone https://github.com/your-username/LocationSpoofer.git
 ### 2. Activation
 1. Open **KernelSU / APatch / Magisk** and grant Root permissions to LocationSpoofer.
 2. Open **LSPosed Manager**, find **LocationSpoofer**, and **enable it**.
-3. Under the module's scope, **check the target apps** you wish to spoof (e.g. WeChat, DingTalk, XuexiTong, Baidu Maps).
-4. **Force stop** target apps or reboot your phone to apply the hooks.
+3. In the module's scope, check **System Framework, Phone and Bluetooth** (spoofing happens in system services, so individual apps don't need to be checked).
+4. **Reboot** so the system services load the module. A reboot is only needed the first time (or after uninstalling and reinstalling); later in-place updates hot-reload automatically.
+5. In the app, go to "Features → System-level spoofing" to spoof all apps or only selected apps. Step and accelerometer spoofing additionally require the fitness apps to be checked in the scope.
 
 ### 3. Usage Scenarios
 

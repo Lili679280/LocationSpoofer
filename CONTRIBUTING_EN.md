@@ -35,7 +35,7 @@ This project and everyone participating in it is governed by the [LocationSpoofe
 ### Reporting Bugs
 
 Before creating a bug report, please:
-* Check the [existing Issues](https://github.com/your-username/LocationSpoofer/issues) to ensure the problem hasn't already been reported.
+* Check the [existing Issues](https://github.com/Lili679280/LocationSpoofer/issues) to ensure the problem hasn't already been reported.
 * Ensure you are running a supported environment (**Android 8.0+**, **KernelSU / APatch / Magisk**, **LSPosed API 101+**).
 
 When filing a bug report via the **Bug Report Template**, please provide:
@@ -79,7 +79,7 @@ Feature requests are welcome! When opening an issue via the **Feature Request Te
 ### Building
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/LocationSpoofer.git
+git clone https://github.com/Lili679280/LocationSpoofer.git
 
 # Open directory
 cd LocationSpoofer
@@ -116,10 +116,10 @@ Before adding new code, decide which module it belongs in: pure business logic/p
   * Lives in the `xposed` module's `com.vincenthzr.locationspoofer.xposed` package, entry class `LocationHooker`; concrete hooks are split by category across `hooks/` (location/GNSS/map SDKs/steps/anti-detection) and `hooks/network/` (Wi-Fi/cell/Bluetooth/connectivity) — file new hooks into the matching existing subpackage rather than piling them into the `xposed` root package or `LocationHooker.kt`.
   * Adheres to **LSPosed API 101+ / libxposed (Service mode)** specifications.
   * Hook calls only read the memory configuration cache. Framework notifications, remote file reads, and JSON decoding belong in the configuration receiver; motion delivery and service discovery use a separate timer.
-  * Both variants use libxposed remote preferences/files for complete snapshots. Finish immutable large-payload files before publishing their pointers. Retain the latest desired state for retries and reconnection. Do not reintroduce public config files, IPC in hook calls, or custom SELinux grants.
+  * Configuration uses libxposed remote preferences/files for complete snapshots. Finish immutable large-payload files before publishing their pointers. Retain the latest desired state for retries and reconnection. Do not reintroduce public config files, IPC in hook calls, or custom SELinux grants.
   * MultiDex safety: Dynamic ClassLoader hooking locked to the host package via `/proc/self/cmdline`.
   * Maintain clean stack traces and avoid leaving observable inspection points.
-  * **System adaptation**: system service class names and vendor differences for the global scheme live only in the adapters under `hooks/vendor/`; shared hook code never hard-codes class names. Before adding or fixing support for a system, read [vendor/README.md](xposed/src/main/java/com/vincenthzr/locationspoofer/xposed/hooks/vendor/README.md) (includes the full checklist) and [ADAPTATION_GUIDE.md](xposed/ADAPTATION_GUIDE.md), and update [ADAPTATION_PROGRESS.md](ADAPTATION_PROGRESS.md) after verifying.
+  * **System adaptation**: system service class names and vendor differences live only in the adapters under `hooks/vendor/`; shared hook code never hard-codes class names. Before adding or fixing support for a system, read [vendor/README.md](xposed/src/main/java/com/vincenthzr/locationspoofer/xposed/hooks/vendor/README.md) (includes the full checklist) and [ADAPTATION_GUIDE.md](xposed/ADAPTATION_GUIDE.md), and update [ADAPTATION_PROGRESS.md](ADAPTATION_PROGRESS.md) after verifying.
 
 ### Coding Conventions
 

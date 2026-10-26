@@ -23,10 +23,10 @@ LocationSpoofer 处于持续维护状态。安全更新与缺陷修复将优先�
 ### 如何报告
 
 1. **GitHub 私密漏洞报告 (推荐)**：
-   请通过 GitHub 提供的 [Private Vulnerability Reporting](https://github.com/your-username/LocationSpoofer/security/advisories/new) 功能发起私密安全通报。
+   请通过 GitHub 提供的 [Private Vulnerability Reporting](https://github.com/Lili679280/LocationSpoofer/security/advisories/new) 功能发起私密安全通报。
 
 2. **备用反馈渠道**：
-   如果无法使用 GitHub 私密安全通报，你可以通过官方社区或 Telegram 群组直接私信项目管理员，并附上详细的复现材料。
+   如果无法使用 GitHub 私密安全通报，可以先开一个不含细节的 Issue 说明需要私下联系。
 
 ### 报告应包含的内容
 

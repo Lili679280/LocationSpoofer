@@ -133,8 +133,8 @@ data class SemVer(
     val major: Int = 0,
     val minor: Int = 0,
     val patch: Int = 0,
-    val isBeta: Boolean = false,
-    val betaNumber: Int = 0
+    val isPrerelease: Boolean = false,
+    val prereleaseNumber: Int = 0
 ) : Comparable<SemVer> {
     companion object {
         fun parse(version: String): SemVer {
@@ -148,12 +148,12 @@ data class SemVer(
             val minor = coreParts.getOrElse(1) { 0 }
             val patch = coreParts.getOrElse(2) { 0 }
 
-            val isBeta = suffix.contains("beta")
-            val betaNumber = if (isBeta) {
+            val isPrerelease = suffix.isNotEmpty()
+            val prereleaseNumber = if (isPrerelease) {
                 Regex("""\d+""").find(suffix)?.value?.toIntOrNull() ?: 1
             } else 0
 
-            return SemVer(major, minor, patch, isBeta, betaNumber)
+            return SemVer(major, minor, patch, isPrerelease, prereleaseNumber)
         }
     }
 
@@ -162,13 +162,13 @@ data class SemVer(
         if (minor != other.minor) return minor.compareTo(other.minor)
         if (patch != other.patch) return patch.compareTo(other.patch)
 
-        // 正式版优先于同一版本的 Beta 版 (例如 2.1.0 > 2.1.0-beta-1)
-        if (!isBeta && other.isBeta) return 1
-        if (isBeta && !other.isBeta) return -1
-        if (!isBeta && !other.isBeta) return 0
+        // 正式版优先于同一版本的预览版 (例如 4.0.0 > 4.0.0-preview.1)
+        if (!isPrerelease && other.isPrerelease) return 1
+        if (isPrerelease && !other.isPrerelease) return -1
+        if (!isPrerelease && !other.isPrerelease) return 0
 
-        // 都是 Beta 版，比较 Beta 序号 (例如 beta-2 > beta-1)
-        return betaNumber.compareTo(other.betaNumber)
+        // 都是预览版，比较序号 (例如 preview.2 > preview.1)
+        return prereleaseNumber.compareTo(other.prereleaseNumber)
     }
 }
 

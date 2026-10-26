@@ -81,7 +81,6 @@ android {
         debug {
             // 没配置发布密钥时回退到 debug 签名，保证新克隆仓库的人也能直接编译调试
             signingConfig = signingConfigs.getByName(if (hasReleaseKeystore) "release" else "debug")
-            buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$googleMapsApiKey\"")
         }
         release {
             isMinifyEnabled = true
@@ -91,7 +90,6 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("release")
-            buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$googleMapsApiKey\"")
         }
     }
     compileOptions {
@@ -100,7 +98,6 @@ android {
     }
     buildFeatures {
         compose = true
-        buildConfig = true
     }
     packaging {
         resources {

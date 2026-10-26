@@ -9,6 +9,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 class SettingsManager(context: Context) {
+    /** 当前安装的是预览版（版本名带 -preview.N 之类的后缀）时，默认接收预览版更新 */
+    private val isPrereleaseBuild: Boolean = runCatching {
+        context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty().contains('-')
+    }.getOrDefault(false)
+
     private val prefs: SharedPreferences =
         context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
 
@@ -79,7 +84,7 @@ class SettingsManager(context: Context) {
         set(value) = prefs.edit().putString("ignored_version", value).apply()
 
     var checkBetaUpdates: Boolean
-        get() = prefs.getBoolean("check_beta_updates", false)
+        get() = prefs.getBoolean("check_beta_updates", isPrereleaseBuild)
         set(value) = prefs.edit().putBoolean("check_beta_updates", value).apply()
 
     var isSpoofingActive: Boolean
