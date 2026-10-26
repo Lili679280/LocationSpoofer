@@ -22,7 +22,7 @@ internal fun MainViewModel.fetchCurrentLocation(ctx: Context, forceCallback: ((D
     viewModelScope.launch(Dispatchers.Main) {
         // 没填高德 Key 时高德定位必然鉴权失败：有百度 Key 先用百度网络定位（室内也快），再不行用系统定位
         if (settingsRepository.getAmapApiKey().isBlank()) {
-            val baidu = realLocationHandoff.fetchBaiduNetworkLocationGcj()
+            val baidu = realLocationHandoff.fetchBaiduLocationGcj()
             if (baidu != null) {
                 applyRealLocationGcj(baidu.first, baidu.second, forceCallback)
             } else {
@@ -155,9 +155,9 @@ private fun MainViewModel.applyRealLocationGcj(lat: Double, lng: Double, forceCa
 
 internal suspend fun MainViewModel.fetchRealLocationSilent(ctx: Context): Pair<Double, Double>? {
     // 没填高德 Key 时高德定位必然鉴权失败，室内系统定位又常常拿不到，采集就一直记不下点位：
-    // 和启动定位一样，先用百度网络定位，再退回系统定位
+    // 先用百度定位（采集时没在模拟，GPS 是真的，可以一起用），再退回系统定位
     if (settingsRepository.getAmapApiKey().isBlank()) {
-        return realLocationHandoff.fetchBaiduNetworkLocationGcj() ?: fallbackToNativeLocationSilent(ctx, true)
+        return realLocationHandoff.fetchBaiduLocationGcj(withGps = true) ?: fallbackToNativeLocationSilent(ctx, true)
     }
     val amapResult = withTimeoutOrNull(15_000) {
         suspendCancellableCoroutine<Pair<Double, Double>?> { cont ->

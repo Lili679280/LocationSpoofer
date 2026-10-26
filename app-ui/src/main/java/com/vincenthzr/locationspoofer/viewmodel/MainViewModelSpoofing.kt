@@ -265,6 +265,9 @@ internal fun MainViewModel.toggleContinuousScanning() {
         val seenWifi = mutableSetOf<String>()
         val seenCells = mutableSetOf<String>()
         val seenBluetooth = mutableSetOf<String>()
+        // 点位采集整次只记一个点：开始时定一次位，之后每轮都记到这里。人没动时网络定位每次也会漂几十米，
+        // 偶尔漂出几公里，逐轮重新定位会把同一批设备散落到许多点位上；要采别处就停止、换地方、再开始
+        var pointAnchor: Pair<Double, Double>? = null
         var routeId: Long? = null
         try {
             if (state.isRouteCollection) {
@@ -279,7 +282,11 @@ internal fun MainViewModel.toggleContinuousScanning() {
                 withContext(NonCancellable) { routeId = environmentDao.insertCollectionRoute(route) }
             }
             while (isActive) {
-                val realLoc = fetchRealLocationSilent(context)
+                val realLoc = if (state.isRouteCollection) {
+                    fetchRealLocationSilent(context)
+                } else {
+                    pointAnchor ?: fetchRealLocationSilent(context)?.also { pointAnchor = it }
+                }
                 val insideRoute = !state.isRouteCollection || (realLoc != null &&
                     com.vincenthzr.locationspoofer.utils.PolylineCoverage.distanceMeters(
                         com.vincenthzr.locationspoofer.utils.CoordinateUtils.LatLng(realLoc.first, realLoc.second),

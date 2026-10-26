@@ -53,7 +53,7 @@ class RealLocationHandoff(
         val stoppedAt = SystemClock.elapsedRealtimeNanos()
         job = scope.launch {
             // 优先用百度网络定位（室内也能很快拿到，且不经过被模拟改写过的系统定位源），拿不到再等系统新定位
-            val real = fetchBaiduNetworkLocationGcj() ?: awaitFreshRealLocationGcj(stoppedAt) ?: return@launch
+            val real = fetchBaiduLocationGcj() ?: awaitFreshRealLocationGcj(stoppedAt) ?: return@launch
             _realLocation.tryEmit(real)
             locationRepository.startSpoofing(
                 context, real.first, real.second,
@@ -79,11 +79,12 @@ class RealLocationHandoff(
     /**
      * 用百度定位 SDK 取一次真实位置（GCJ-02），没填百度 Key 或定位失败返回 null。
      *
-     * 只走网络定位（Wi-Fi / 基站 → 百度服务器），不开 GPS：全局模拟时系统 GPS provider 会被注入模拟定位，
+     * 默认只走网络定位（Wi-Fi / 基站 → 百度服务器），不开 GPS：全局模拟时系统 GPS provider 会被注入模拟定位，
      * 而本软件自身进程拿到的 Wi-Fi / 基站数据始终是真实的。也不依赖谷歌网络定位——它判定手机"静止"时
      * 可能长时间不出新位置，室内就既没有 GPS 也没有网络定位可用。
+     * 确定没在模拟时（例如采集环境数据）传 [withGps] = true，室外用 GPS，比网络定位准得多。
      */
-    suspend fun fetchBaiduNetworkLocationGcj(): Pair<Double, Double>? {
+    suspend fun fetchBaiduLocationGcj(withGps: Boolean = false): Pair<Double, Double>? {
         val key = settingsRepository.getBaiduApiKey()
         if (key.isBlank()) return null
         return withContext(Dispatchers.Main) {
@@ -99,7 +100,10 @@ class RealLocationHandoff(
                     }
                     client.locOption = com.baidu.location.LocationClientOption().apply {
                         setCoorType("gcj02")
-                        setLocationMode(com.baidu.location.LocationClientOption.LocationMode.Battery_Saving)
+                        setLocationMode(
+                            if (withGps) com.baidu.location.LocationClientOption.LocationMode.Hight_Accuracy
+                            else com.baidu.location.LocationClientOption.LocationMode.Battery_Saving
+                        )
                         setOnceLocation(true)
                         setIsNeedAddress(false)
                     }
@@ -107,6 +111,7 @@ class RealLocationHandoff(
                         override fun onReceiveLocation(location: com.baidu.location.BDLocation?) {
                             runCatching { client.stop() }
                             val ok = location != null && location.locType in setOf(
+                                com.baidu.location.BDLocation.TypeGpsLocation,
                                 com.baidu.location.BDLocation.TypeNetWorkLocation,
                                 com.baidu.location.BDLocation.TypeOffLineLocation
                             )
