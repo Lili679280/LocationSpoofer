@@ -234,21 +234,25 @@ fun AMapViewContainer(
     }
 
     DisposableEffect(lifecycleOwner.lifecycle, amapView) {
+        // 销毁只在 onDispose 里做一次：界面关闭时 ON_DESTROY 和 onDispose 都会到，重复销毁会弄坏地图 SDK 的共享渲染状态，
+        // 进程还活着时再打开界面，新地图就会停在空白或 SDK 默认的北京
+        var resumed = false
+        fun resume() { if (!resumed) { resumed = true; amapView.onResume() } }
+        fun pause() { if (resumed) { resumed = false; amapView.onPause() } }
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_RESUME -> amapView.onResume()
-                Lifecycle.Event.ON_PAUSE -> amapView.onPause()
-                Lifecycle.Event.ON_DESTROY -> amapView.onDestroy()
+                Lifecycle.Event.ON_RESUME -> resume()
+                Lifecycle.Event.ON_PAUSE -> pause()
                 else -> {}
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-            amapView.onResume()
+            resume()
         }
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
-            amapView.onPause()
+            pause()
             amapView.onDestroy()
         }
     }
