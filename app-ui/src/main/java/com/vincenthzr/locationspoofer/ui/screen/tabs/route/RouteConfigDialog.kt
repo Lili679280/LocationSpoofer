@@ -43,6 +43,7 @@ fun RouteConfigDialog(
     onUseRealRouteChange: (Boolean) -> Unit = {},
     onRouteTravelModeChange: (RouteTravelMode) -> Unit = {},
     onStopAtDestinationChange: (Boolean) -> Unit = {},
+    onStayAtRouteStopPointChange: (Boolean) -> Unit = {},
     onEnableStepSimulationChange: (Boolean) -> Unit = {},
     onStepCadenceChange: (Int) -> Unit = {},
     onIsAutoCadenceChange: (Boolean) -> Unit = {},
@@ -495,6 +496,42 @@ fun RouteConfigDialog(
                             Switch(
                                 checked = uiState.stopAtDestination,
                                 onCheckedChange = onStopAtDestinationChange,
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = AccentBlue
+                                )
+                            )
+                        }
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    stringResource(R.string.stay_at_route_stop_title),
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    if (uiState.stayAtRouteStopPoint) stringResource(R.string.stay_at_route_stop_desc_on) else stringResource(R.string.stay_at_route_stop_desc_off),
+                                    fontSize = 11.5.sp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                                )
+                            }
+                            Switch(
+                                checked = uiState.stayAtRouteStopPoint,
+                                onCheckedChange = onStayAtRouteStopPointChange,
                                 colors = SwitchDefaults.colors(
                                     checkedThumbColor = Color.White,
                                     checkedTrackColor = AccentBlue

@@ -24,7 +24,6 @@ import com.vincenthzr.locationspoofer.xposed.hooks.vendor.SystemComponent
 import com.vincenthzr.locationspoofer.xposed.hooks.vendor.SystemProcess
 import com.vincenthzr.locationspoofer.xposed.diagnostics.HookStatus
 
-import io.github.libxposed.api.XposedInterface
 import io.github.libxposed.api.XposedModule
 import io.github.libxposed.api.XposedModuleInterface
 import org.json.JSONObject
@@ -33,10 +32,6 @@ import android.os.ParcelFileDescriptor
 import com.vincenthzr.locationspoofer.utils.FrameworkConfigChannel
 import java.util.Random
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.math.abs
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
 import java.lang.reflect.*
 import java.util.concurrent.CopyOnWriteArrayList
 import com.vincenthzr.locationspoofer.APP_PACKAGE_NAME

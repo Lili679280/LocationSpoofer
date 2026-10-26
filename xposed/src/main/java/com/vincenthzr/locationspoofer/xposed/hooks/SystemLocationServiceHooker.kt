@@ -16,19 +16,15 @@
 
 package com.vincenthzr.locationspoofer.xposed.hooks
 
-import com.vincenthzr.locationspoofer.xposed.hooks.vendor.VendorRegistry
 import android.location.LocationManager
 import android.os.IBinder
 import android.os.IInterface
-import android.util.Log
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
 import com.vincenthzr.locationspoofer.xposed.hooks.vendor.SystemComponent
 import com.vincenthzr.locationspoofer.xposed.hooks.vendor.SystemClassLocator
 import com.vincenthzr.locationspoofer.xposed.utils.*
 import io.github.libxposed.api.*
 import org.json.JSONObject
-import java.lang.ref.WeakReference
-import java.lang.reflect.Method
 import java.util.Collections
 import java.util.Timer
 import java.util.TimerTask

@@ -2,9 +2,7 @@ package com.vincenthzr.locationspoofer.viewmodel
 
 import androidx.lifecycle.viewModelScope
 import com.vincenthzr.locationspoofer.ui.R
-import com.vincenthzr.locationspoofer.data.db.LocationRecord
 import com.vincenthzr.locationspoofer.data.model.RoutePlanStage
-import com.vincenthzr.locationspoofer.data.state.SpoofingState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
@@ -13,13 +11,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.coroutines.resume
 
 // MainViewModel 的模拟开关、摇杆移动与持续扫描相关扩展函数
 
-internal fun MainViewModel.startSpoofing() {
+/** 定点模拟。[restartApps] 为 false 时忽略"开始模拟时重启目标应用"（路线停下后原地接着模拟时用，不该打断正在用的 App） */
+internal fun MainViewModel.startSpoofing(restartApps: Boolean = true) {
     val state = _uiState.value
 
     if (state.isContinuousScanning || state.isStoppingCollection) {
@@ -38,7 +34,7 @@ internal fun MainViewModel.startSpoofing() {
         return
     }
 
-    cancelRealLocationHandoff()
+    realLocationHandoff.cancel()
     settingsRepository.isSpoofingActive = true
     settingsRepository.lastSpoofedLat = lat.toString()
     settingsRepository.lastSpoofedLng = lng.toString()
@@ -75,7 +71,7 @@ internal fun MainViewModel.startSpoofing() {
         // 稍作等待，确保 root shell 完全同步到磁盘
         kotlinx.coroutines.delay(200)
 
-        if (updatedState.restartAppsOnSpoof) {
+        if (restartApps && updatedState.restartAppsOnSpoof) {
             restartHookedAppsSilently()
         }
 
@@ -117,13 +113,17 @@ private suspend fun MainViewModel.restartHookedAppsSilently() {
     }
 }
 
-internal fun MainViewModel.stopSpoofing() {
+/**
+ * 停止模拟。[fullStop] 为 true 时（通知栏的"停止模拟"）不管"路线停止后留在原地"开没开，都彻底停止并回到真实位置。
+ */
+internal fun MainViewModel.stopSpoofing(fullStop: Boolean = false) {
     // 路线模拟进行中时（比如在定位页点了停止），按停止路线处理，连路线一起取消，
     // 否则定位图标没了但路线和"巡航中"状态还留在路线页
     if (_uiState.value.routePlanStage == RoutePlanStage.RUNNING) {
-        stopRoutePlanning()
+        stopRoutePlanning(stayAtStopPoint = !fullStop && _uiState.value.stayAtRouteStopPoint)
         return
     }
+    if (!_uiState.value.isSpoofingActive) return
     settingsRepository.isSpoofingActive = false
     locationSyncJob?.cancel()
     locationSyncJob = null
@@ -133,99 +133,9 @@ internal fun MainViewModel.stopSpoofing() {
         _uiState.update {
             it.copy(isSpoofingActive = false)
         }
-        handOffToRealLocation()
+        realLocationHandoff.start()
     }
 }
-
-/**
- * 在真实位置上继续模拟的时长。GMS 按 App 分别记住上次给出的位置，只有在这段时间里正在接收定位的
- * App（例如前台的谷歌地图）才会收到并采用这个真实位置，所以不能太短
- */
-private const val REAL_LOCATION_HANDOFF_MS = 5_000L
-
-/** 停止后等待一次新的真实定位的最长时间，超时就放弃交还 */
-private const val REAL_LOCATION_WAIT_MS = 20_000L
-
-/**
- * 停止模拟后立即回到真实位置，在 locationRepository.stopSpoofing() 之后调用。效果相当于停止后马上点一次"当前定位"：
- * 1. 立刻重新定位：有百度 Key 时用百度网络定位；否则（或失败时）等一次停止之后新产生的系统定位
- *    （模拟期间 Hook 也改写了系统各 provider 的缓存位置，所以不能用 getLastKnownLocation）；
- * 2. 本软件的地图移到这个位置；
- * 3. 仅全局方案：在这个位置上再模拟一两秒（关掉 Wi-Fi / 基站伪造，与真实环境一致），然后真正停止。
- *    全局方案下谷歌定位服务（GMS）也会收到模拟数据，并把模拟期间的位置记成"当前位置"（重启 GMS 也清不掉）。
- *    室内只有误差大的网络定位时，它会把真实位置判成"移动过快"丢弃，谷歌地图一直停在模拟的地方；
- *    而高精度的 GNSS 定位不管跳多远都会被立即接受，借此把它的记忆纠正回真实位置。
- */
-internal fun MainViewModel.handOffToRealLocation() {
-    realLocationHandoffJob?.cancel()
-    val stoppedAt = android.os.SystemClock.elapsedRealtimeNanos()
-    realLocationHandoffJob = viewModelScope.launch {
-        // 优先用百度网络定位（室内也能很快拿到，且不经过被模拟改写过的系统定位源），拿不到再等系统新定位
-        val real = fetchBaiduNetworkLocationGcj() ?: awaitFreshRealLocationGcj(stoppedAt) ?: return@launch
-        _uiState.update {
-            it.copy(
-                latitudeInput = formatCoordinateInput(real.first),
-                longitudeInput = formatCoordinateInput(real.second),
-                showCoordinateError = false,
-                mapRecenterRequest = com.vincenthzr.locationspoofer.data.model.MapRecenterRequest(real.first, real.second)
-            )
-        }
-        locationRepository.startSpoofing(
-            context, real.first, real.second,
-            "STILL", 0f, System.currentTimeMillis(),
-            emptyList(), false,
-            _uiState.value.appCoordinateSystems,
-            mockWifi = false,
-            mockCell = false,
-            mockBluetooth = false,
-            enableJitter = false
-        )
-        delay(REAL_LOCATION_HANDOFF_MS)
-        locationRepository.stopSpoofing(context)
-    }
-}
-
-/** 新的模拟开始时取消还没走完的交还过程，免得它稍后把新模拟停掉 */
-internal fun MainViewModel.cancelRealLocationHandoff() {
-    realLocationHandoffJob?.cancel()
-    realLocationHandoffJob = null
-}
-
-/** 等一次 [sinceElapsedNanos] 之后产生的系统定位（GPS 或网络），转成 GCJ-02；拿不到返回 null */
-@android.annotation.SuppressLint("MissingPermission")
-private suspend fun MainViewModel.awaitFreshRealLocationGcj(sinceElapsedNanos: Long): Pair<Double, Double>? =
-    withTimeoutOrNull(REAL_LOCATION_WAIT_MS) {
-        suspendCancellableCoroutine { cont ->
-            val lm = context.getSystemService(android.content.Context.LOCATION_SERVICE) as android.location.LocationManager
-            val providers = listOf(android.location.LocationManager.GPS_PROVIDER, android.location.LocationManager.NETWORK_PROVIDER)
-                .filter { runCatching { lm.isProviderEnabled(it) }.getOrDefault(false) }
-            val listener = object : android.location.LocationListener {
-                override fun onLocationChanged(location: android.location.Location) {
-                    if (location.elapsedRealtimeNanos <= sinceElapsedNanos || !cont.isActive) return
-                    lm.removeUpdates(this)
-                    val gcj = com.vincenthzr.locationspoofer.utils.CoordinateUtils.wgs84ToGcj02(location.latitude, location.longitude)
-                    cont.resume(gcj.lat to gcj.lng)
-                }
-
-                // Android 10 及以下这三个回调还没有默认实现，必须写出来
-                @Deprecated("Deprecated in Java")
-                override fun onStatusChanged(provider: String?, status: Int, extras: android.os.Bundle?) {}
-                override fun onProviderEnabled(provider: String) {}
-                override fun onProviderDisabled(provider: String) {}
-            }
-            cont.invokeOnCancellation { runCatching { lm.removeUpdates(listener) } }
-            try {
-                if (providers.isEmpty()) {
-                    cont.resume(null)
-                    return@suspendCancellableCoroutine
-                }
-                providers.forEach { lm.requestLocationUpdates(it, 1_000L, 0f, listener, android.os.Looper.getMainLooper()) }
-            } catch (e: SecurityException) {
-                runCatching { lm.removeUpdates(listener) }
-                if (cont.isActive) cont.resume(null)
-            }
-        }
-    }
 
 /**
  * 悬浮摇杆只服务于"摇杆手动控制"的路线模拟，没有"显示在其他应用上层"权限时无法操作。

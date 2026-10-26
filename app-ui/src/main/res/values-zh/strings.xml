@@ -260,6 +260,9 @@
     <string name="stop_at_destination_title">到达终点后停下</string>
     <string name="stop_at_destination_desc_on">到达终点后停止模拟并停留在终点</string>
     <string name="stop_at_destination_desc_off">到达终点后自动循环巡航（闭环正向，开放折返）</string>
+    <string name="stay_at_route_stop_title">停止后留在原地</string>
+    <string name="stay_at_route_stop_desc_on">停止路线后在停下的地方继续定点模拟，在定位页再点停止才结束</string>
+    <string name="stay_at_route_stop_desc_off">停止路线后结束模拟，回到真实位置</string>
     <string name="real_road_matching">真实道路匹配</string>
     <string name="real_road_matching_desc">自动计算并贴合城市真实行车道路</string>
     <string name="start_route_simulation">开始路线模拟</string>

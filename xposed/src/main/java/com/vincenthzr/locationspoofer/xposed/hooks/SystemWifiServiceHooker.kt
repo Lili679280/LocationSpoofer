@@ -16,7 +16,6 @@
 
 package com.vincenthzr.locationspoofer.xposed.hooks
 
-import android.util.Log
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
 import com.vincenthzr.locationspoofer.xposed.diagnostics.HookStatus
 import com.vincenthzr.locationspoofer.xposed.hooks.vendor.SystemClassLocator
@@ -24,7 +23,6 @@ import com.vincenthzr.locationspoofer.xposed.hooks.vendor.SystemComponent
 import com.vincenthzr.locationspoofer.xposed.utils.XposedBridge
 import com.vincenthzr.locationspoofer.xposed.utils.XposedHelpers
 import org.json.JSONObject
-import java.io.File
 import java.lang.reflect.Array as ReflectArray
 import java.util.Random
 

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- 模拟服务通知栏的"停止模拟"按钮，广播只发给本应用 -->
+        <receiver
+            android:name="com.vincenthzr.locationspoofer.viewmodel.NotificationStopReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.vincenthzr.locationspoofer.NOTIFICATION_STOP" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>

@@ -4,7 +4,6 @@ import androidx.lifecycle.viewModelScope
 import com.vincenthzr.locationspoofer.data.db.LocationRecord
 import com.vincenthzr.locationspoofer.data.model.ImportExportCounts
 import com.vincenthzr.locationspoofer.data.model.ImportExportSelection
-import com.vincenthzr.locationspoofer.data.model.RoutePoint
 import com.vincenthzr.locationspoofer.data.model.SavedLocation
 import com.vincenthzr.locationspoofer.data.model.AppMapType
 import com.vincenthzr.locationspoofer.data.model.MapEngine

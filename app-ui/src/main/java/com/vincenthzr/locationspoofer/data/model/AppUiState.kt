@@ -148,6 +148,8 @@ data class AppState(
     val routeTravelMode: RouteTravelMode = RouteTravelMode.WALK,
     /** 到达终点后是否停下 */
     val stopAtDestination: Boolean = false,
+    /** 路线停止后在停下的地方接着定点模拟，见 stopRoutePlanning() */
+    val stayAtRouteStopPoint: Boolean = false,
     /** 是否正在向地图API请求真实路线 */
     val isFetchingRoute: Boolean = false,
     /** 首页地图已确认的选点（点击地图后出现确认按钮，确认后填充坐标） */

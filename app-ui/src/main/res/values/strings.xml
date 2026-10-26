@@ -261,6 +261,9 @@
     <string name="stop_at_destination_title">Stop at Destination</string>
     <string name="stop_at_destination_desc_on">Stop simulation and stay at destination upon arrival</string>
     <string name="stop_at_destination_desc_off">Auto loop upon arrival (forward for closed loop, return for open route)</string>
+    <string name="stay_at_route_stop_title">Stay Where Stopped</string>
+    <string name="stay_at_route_stop_desc_on">After stopping the route, keep spoofing at the spot where it stopped; stop again on the Location tab to end</string>
+    <string name="stay_at_route_stop_desc_off">Stopping the route ends spoofing and returns to the real location</string>
     <string name="real_road_matching">Real Road Matching</string>
     <string name="real_road_matching_desc">Snap to actual city driving roads automatically</string>
     <string name="start_route_simulation">Start Route Simulation</string>

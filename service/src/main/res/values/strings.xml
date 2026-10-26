@@ -20,4 +20,5 @@
     <string name="fj_save">Save</string>
     <string name="fj_discard">Discard</string>
     <string name="fj_saved_toast">Route saved</string>
+    <string name="spoofing_service_stop">Stop spoofing</string>
 </resources>

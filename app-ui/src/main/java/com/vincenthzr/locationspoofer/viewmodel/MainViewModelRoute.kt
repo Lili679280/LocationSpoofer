@@ -15,7 +15,6 @@ import com.vincenthzr.locationspoofer.data.model.SavedLocation
 import com.vincenthzr.locationspoofer.data.model.SimMode
 import com.vincenthzr.locationspoofer.data.state.SpoofingState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
@@ -178,6 +177,11 @@ internal fun MainViewModel.setUseRealRoute(use: Boolean) {
     _uiState.update { it.copy(useRealRoute = use) }
 }
 
+internal fun MainViewModel.setStayAtRouteStopPoint(stay: Boolean) {
+    settingsRepository.stayAtRouteStopPoint = stay
+    _uiState.update { it.copy(stayAtRouteStopPoint = stay) }
+}
+
 internal fun MainViewModel.setStopAtDestination(stop: Boolean) {
     _uiState.update { it.copy(stopAtDestination = stop) }
 }
@@ -213,7 +217,7 @@ internal fun MainViewModel.startRoutePlanning() {
     if (state.routePoints.size < 2) return
     // 手动模式完全靠悬浮摇杆操作，没有悬浮窗权限就不启动，免得路线停在起点无法控制
     if (state.routeRunMode == RouteRunMode.MANUAL && !ensureOverlayPermission()) return
-    cancelRealLocationHandoff()
+    realLocationHandoff.cancel()
 
     val routeProvider = if (state.useRealRoute) pickRouteProvider(state) else null
     if (state.useRealRoute && routeProvider == null) {
@@ -607,7 +611,29 @@ private fun MainViewModel.startSimulationWithPoints(pointsToRun: List<RoutePoint
 
 /** 停止路线模拟，重置所有状态 */
 
-internal fun MainViewModel.stopRoutePlanning() {
+/**
+ * 停止路线模拟。[stayAtStopPoint] 为 true 时不回到真实位置，改为在路线停下的地方接着定点模拟
+ * （路线设置里的"停止后留在原地"）；之后在定位页再点停止才彻底结束。
+ */
+internal fun MainViewModel.stopRoutePlanning(stayAtStopPoint: Boolean = _uiState.value.stayAtRouteStopPoint) {
+    if (stayAtStopPoint) {
+        val motion = motionController.state.value
+        locationSyncJob?.cancel()
+        locationSyncJob = null
+        motionController.onStopped()
+        environmentUpdateJob?.cancel()
+        _uiState.update {
+            it.copy(
+                routePlanStage = RoutePlanStage.IDLE,
+                routePoints = emptyList(),
+                routeRunMode = RouteRunMode.LOOP,
+                latitudeInput = if (motion.active) formatCoordinateInput(motion.lat) else it.latitudeInput,
+                longitudeInput = if (motion.active) formatCoordinateInput(motion.lng) else it.longitudeInput
+            )
+        }
+        startSpoofing(restartApps = false)
+        return
+    }
     settingsRepository.isSpoofingActive = false
     locationSyncJob?.cancel()
     locationSyncJob = null
@@ -623,7 +649,7 @@ internal fun MainViewModel.stopRoutePlanning() {
                 routeRunMode = RouteRunMode.LOOP
             )
         }
-        handOffToRealLocation()
+        realLocationHandoff.start()
     }
 }
 

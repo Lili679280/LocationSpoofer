@@ -1,7 +1,6 @@
 package com.vincenthzr.locationspoofer.utils
 
 import android.content.Context
-import android.content.pm.PackageManager
 import com.vincenthzr.locationspoofer.data.model.AppInfoItem
 
 class LSPosedManager {

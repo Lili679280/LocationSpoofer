@@ -13,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Layers
 import androidx.compose.material.icons.rounded.MyLocation
-import androidx.compose.material.icons.rounded.Radar
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -45,7 +44,6 @@ import com.vincenthzr.locationspoofer.viewmodel.fetchCurrentLocation
 import com.vincenthzr.locationspoofer.viewmodel.isDomesticEnvironment
 import com.vincenthzr.locationspoofer.viewmodel.setMapEngine
 import com.vincenthzr.locationspoofer.viewmodel.setMapType
-import com.vincenthzr.locationspoofer.viewmodel.toggleContinuousScanning
 import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 
 @Composable

@@ -16,13 +16,8 @@
 
 package com.vincenthzr.locationspoofer.xposed.hooks.network
 
-import android.os.Handler
-import android.os.Looper
-import android.os.SystemClock
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
 import com.vincenthzr.locationspoofer.xposed.utils.*
-import org.json.JSONObject
-import kotlin.random.Random
 import io.github.libxposed.api.*
 
 /**

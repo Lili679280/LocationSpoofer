@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
+import com.vincenthzr.locationspoofer.data.state.NotificationActions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -30,7 +31,8 @@ class SpoofingService : Service() {
         const val EXTRA_LAT = "EXTRA_LAT"
         const val EXTRA_LNG = "EXTRA_LNG"
         private const val NOTIFICATION_ID = 1001
-        private const val CHANNEL_ID = "SpoofingServiceChannel"
+        private const val CHANNEL_ID = "spoofing_status"
+        private const val LEGACY_CHANNEL_ID = "SpoofingServiceChannel"
 
         var isRunning = false
             private set
@@ -69,6 +71,13 @@ class SpoofingService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val stopIntent = PendingIntent.getBroadcast(
+            this,
+            1,
+            Intent(NotificationActions.STOP).setPackage(packageName),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.spoofing_service_title))
             .setContentText(
@@ -80,7 +89,9 @@ class SpoofingService : Service() {
             )
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
             .setContentIntent(pendingIntent)
+            .addAction(0, getString(R.string.spoofing_service_stop), stopIntent)
             .setOngoing(true)
+            .setOnlyAlertOnce(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -158,17 +169,21 @@ class SpoofingService : Service() {
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                getString(R.string.spoofing_service_channel_name),
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = getString(R.string.spoofing_bg_notification_title)
-                setShowBadge(false)
-            }
-            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        val manager = getSystemService(NotificationManager::class.java)
+        // 低重要性的通知会被收进"静音"分组并默认折叠，"停止模拟"按钮要手动展开才看得到；
+        // 改成默认重要性（不响铃不振动）。已创建的渠道改不了重要性，所以换了渠道 ID 并删掉旧渠道
+        manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            getString(R.string.spoofing_service_channel_name),
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = getString(R.string.spoofing_bg_notification_title)
+            setShowBadge(false)
+            setSound(null, null)
+            enableVibration(false)
         }
+        manager.createNotificationChannel(channel)
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {

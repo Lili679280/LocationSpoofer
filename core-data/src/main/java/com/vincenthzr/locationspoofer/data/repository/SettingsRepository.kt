@@ -192,6 +192,12 @@ class SettingsRepository(private val settingsManager: SettingsManager) {
             settingsManager.keepLastMapPosition = value
         }
 
+    var stayAtRouteStopPoint: Boolean
+        get() = settingsManager.stayAtRouteStopPoint
+        set(value) {
+            settingsManager.stayAtRouteStopPoint = value
+        }
+
     /** 最后一次选定的地图位置（GCJ-02），未保存过时返回 null */
     fun getLastMapPosition(): Pair<String, String>? {
         val lat = settingsManager.lastMapLat

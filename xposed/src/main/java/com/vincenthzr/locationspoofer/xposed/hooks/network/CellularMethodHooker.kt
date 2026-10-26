@@ -19,9 +19,6 @@ package com.vincenthzr.locationspoofer.xposed.hooks.network
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
 import com.vincenthzr.locationspoofer.xposed.utils.*
 import com.vincenthzr.locationspoofer.xposed.hooks.*
-import org.json.JSONObject
-import java.util.concurrent.ConcurrentHashMap
-import java.lang.reflect.Member
 import kotlin.math.*
 import io.github.libxposed.api.*
 

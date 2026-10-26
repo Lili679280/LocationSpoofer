@@ -7,7 +7,6 @@ import com.amap.api.location.AMapLocationClient
 import com.amap.api.location.AMapLocationClientOption
 import com.vincenthzr.locationspoofer.ui.R
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -23,7 +22,7 @@ internal fun MainViewModel.fetchCurrentLocation(ctx: Context, forceCallback: ((D
     viewModelScope.launch(Dispatchers.Main) {
         // 没填高德 Key 时高德定位必然鉴权失败：有百度 Key 先用百度网络定位（室内也快），再不行用系统定位
         if (settingsRepository.getAmapApiKey().isBlank()) {
-            val baidu = fetchBaiduNetworkLocationGcj()
+            val baidu = realLocationHandoff.fetchBaiduNetworkLocationGcj()
             if (baidu != null) {
                 applyRealLocationGcj(baidu.first, baidu.second, forceCallback)
             } else {
@@ -151,54 +150,6 @@ private fun MainViewModel.applyRealLocationGcj(lat: Double, lng: Double, forceCa
             )
         }
         forceCallback?.invoke(lat, lng)
-    }
-}
-
-/** 百度网络定位最长等待时间 */
-private const val BAIDU_LOCATION_TIMEOUT_MS = 8_000L
-
-/**
- * 用百度定位 SDK 取一次真实位置（GCJ-02），没填百度 Key 或定位失败返回 null。
- *
- * 只走网络定位（Wi-Fi / 基站 → 百度服务器），不开 GPS：全局模拟时系统 GPS provider 会被注入模拟定位，
- * 而本软件自身进程拿到的 Wi-Fi / 基站数据始终是真实的。也不依赖谷歌网络定位——它判定手机"静止"时
- * 可能长时间不出新位置，室内就既没有 GPS 也没有网络定位可用。
- */
-internal suspend fun MainViewModel.fetchBaiduNetworkLocationGcj(): Pair<Double, Double>? {
-    val key = settingsRepository.getBaiduApiKey()
-    if (key.isBlank()) return null
-    return withContext(Dispatchers.Main) {
-        withTimeoutOrNull(BAIDU_LOCATION_TIMEOUT_MS) {
-            suspendCancellableCoroutine { cont ->
-                val client = try {
-                    com.baidu.location.LocationClient.setAgreePrivacy(true)
-                    com.baidu.location.LocationClient.setKey(key)
-                    com.baidu.location.LocationClient(context.applicationContext)
-                } catch (e: Exception) {
-                    cont.resume(null)
-                    return@suspendCancellableCoroutine
-                }
-                client.locOption = com.baidu.location.LocationClientOption().apply {
-                    setCoorType("gcj02")
-                    setLocationMode(com.baidu.location.LocationClientOption.LocationMode.Battery_Saving)
-                    setOnceLocation(true)
-                    setIsNeedAddress(false)
-                }
-                val listener = object : com.baidu.location.BDAbstractLocationListener() {
-                    override fun onReceiveLocation(location: com.baidu.location.BDLocation?) {
-                        runCatching { client.stop() }
-                        val ok = location != null && location.locType in setOf(
-                            com.baidu.location.BDLocation.TypeNetWorkLocation,
-                            com.baidu.location.BDLocation.TypeOffLineLocation
-                        )
-                        if (cont.isActive) cont.resume(if (ok) location.latitude to location.longitude else null)
-                    }
-                }
-                cont.invokeOnCancellation { runCatching { client.stop() } }
-                client.registerLocationListener(listener)
-                client.start()
-            }
-        }
     }
 }
 

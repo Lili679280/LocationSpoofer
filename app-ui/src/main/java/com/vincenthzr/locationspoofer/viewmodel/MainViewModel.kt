@@ -14,7 +14,6 @@ import com.vincenthzr.locationspoofer.data.motion.MotionController
 import com.vincenthzr.locationspoofer.data.repository.LocationRepository
 import com.vincenthzr.locationspoofer.data.repository.SettingsRepository
 import com.vincenthzr.locationspoofer.data.repository.WifiRepository
-import com.vincenthzr.locationspoofer.data.state.SpoofingState
 import com.vincenthzr.locationspoofer.ui.screen.spoofing.SpoofingUiState
 import com.vincenthzr.locationspoofer.utils.EnvironmentScanner
 import com.vincenthzr.locationspoofer.utils.LSPosedManager
@@ -42,6 +41,7 @@ class MainViewModel(
     internal val wifiRepository: WifiRepository,
     internal val opencellidClient: OpenCellIdClient,
     internal val motionController: MotionController,
+    internal val realLocationHandoff: RealLocationHandoff,
     internal val context: Context
 ) : ViewModel() {
     internal var lastMapMoveTime = 0L
@@ -49,8 +49,6 @@ class MainViewModel(
     internal var gaitRecordingJob: Job? = null
     internal var mockCapabilitiesJob: Job? = null
     internal var environmentUpdateJob: Job? = null
-    /** 停止模拟后"交还真实位置"的过渡任务，见 handOffToRealLocation() */
-    internal var realLocationHandoffJob: Job? = null
 
     val collectionRoutes = environmentDao.observeCollectionRoutes().distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -83,6 +81,7 @@ class MainViewModel(
             gaitTemplateStrides = GaitTemplate.decode(settingsRepository.gaitTemplate)?.strideCount ?: 0,
             useGaitTemplate = settingsRepository.useGaitTemplate,
             keepLastMapPosition = settingsRepository.keepLastMapPosition,
+            stayAtRouteStopPoint = settingsRepository.stayAtRouteStopPoint,
             savedLocations = settingsRepository.getSavedLocations(),
             savedRoutes = emptyList(), // 将由 Room Flow 填充
             currentLanguage = settingsRepository.getLanguage(),

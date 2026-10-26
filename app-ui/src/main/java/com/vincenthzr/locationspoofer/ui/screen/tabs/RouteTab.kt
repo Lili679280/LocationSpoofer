@@ -79,6 +79,7 @@ import com.vincenthzr.locationspoofer.viewmodel.setSatelliteCount
 import com.vincenthzr.locationspoofer.viewmodel.setSearchMode
 import com.vincenthzr.locationspoofer.viewmodel.setStepCadenceSpm
 import com.vincenthzr.locationspoofer.viewmodel.setStopAtDestination
+import com.vincenthzr.locationspoofer.viewmodel.setStayAtRouteStopPoint
 import com.vincenthzr.locationspoofer.viewmodel.setUseRealRoute
 import com.vincenthzr.locationspoofer.viewmodel.setRouteTravelMode
 import com.vincenthzr.locationspoofer.viewmodel.startRoutePlanning
@@ -620,6 +621,7 @@ fun RouteTab(
             onUseRealRouteChange = viewModel::setUseRealRoute,
             onRouteTravelModeChange = viewModel::setRouteTravelMode,
             onStopAtDestinationChange = viewModel::setStopAtDestination,
+            onStayAtRouteStopPointChange = viewModel::setStayAtRouteStopPoint,
             onEnableStepSimulationChange = viewModel::setEnableStepSimulation,
             onStepCadenceChange = viewModel::setStepCadenceSpm,
             onIsAutoCadenceChange = viewModel::setIsAutoCadence,

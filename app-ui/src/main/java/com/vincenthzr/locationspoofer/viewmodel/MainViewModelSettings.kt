@@ -10,7 +10,6 @@ import com.vincenthzr.locationspoofer.data.model.RoutePlanStage
 import com.vincenthzr.locationspoofer.data.model.AppMapType
 import com.vincenthzr.locationspoofer.data.model.MapEngine
 import com.vincenthzr.locationspoofer.data.model.SearchMode
-import com.vincenthzr.locationspoofer.data.state.SpoofingState
 import com.vincenthzr.locationspoofer.ui.screen.AppPoiItem
 import com.vincenthzr.locationspoofer.ui.screen.spoofing.SpoofingIntent
 import com.vincenthzr.locationspoofer.utils.XposedModuleStatus
@@ -94,6 +93,25 @@ internal fun MainViewModel.initialize() {
     }
 
     observeMotionController()
+
+    // 停止后交还真实位置时，把地图移到真实位置（效果同点一次"当前定位"）
+    viewModelScope.launch {
+        realLocationHandoff.realLocation.collect { (lat, lng) ->
+            _uiState.update {
+                it.copy(
+                    latitudeInput = formatCoordinateInput(lat),
+                    longitudeInput = formatCoordinateInput(lng),
+                    showCoordinateError = false,
+                    mapRecenterRequest = com.vincenthzr.locationspoofer.data.model.MapRecenterRequest(lat, lng)
+                )
+            }
+        }
+    }
+
+    // 通知栏的"停止模拟"：界面还在时由这里处理，连路线一起彻底停止
+    viewModelScope.launch {
+        ExternalStopRequests.requests.collect { stopSpoofing(fullStop = true) }
+    }
 
     // 监听完整环境数据，同一坐标追加设备时记录数量不变，也必须刷新模拟能力。
     viewModelScope.launch {

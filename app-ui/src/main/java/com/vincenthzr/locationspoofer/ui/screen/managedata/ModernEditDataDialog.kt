@@ -27,7 +27,6 @@ import androidx.compose.ui.window.DialogProperties
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.db.CompleteLocation
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import java.text.SimpleDateFormat

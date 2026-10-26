@@ -1,7 +1,6 @@
 package com.vincenthzr.locationspoofer.viewmodel
 
 import androidx.lifecycle.viewModelScope
-import com.vincenthzr.locationspoofer.data.db.CollectionRouteRecord
 import com.vincenthzr.locationspoofer.data.db.CompleteLocation
 import com.vincenthzr.locationspoofer.data.model.CollectionRouteMatcher
 import com.vincenthzr.locationspoofer.data.model.RoutePoint

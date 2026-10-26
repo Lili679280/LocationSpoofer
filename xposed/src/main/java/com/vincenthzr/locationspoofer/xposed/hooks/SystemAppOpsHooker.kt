@@ -20,7 +20,6 @@ import com.vincenthzr.locationspoofer.xposed.hooks.vendor.SystemComponent
 import com.vincenthzr.locationspoofer.xposed.hooks.vendor.SystemClassLocator
 import com.vincenthzr.locationspoofer.xposed.utils.XposedBridge
 import com.vincenthzr.locationspoofer.xposed.utils.XposedHelpers
-import org.json.JSONObject
 
 private fun sysLog(msg: String) = XposedBridge.log(msg)
 

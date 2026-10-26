@@ -153,6 +153,11 @@ class SettingsManager(context: Context) {
         get() = prefs.getBoolean("keep_last_map_position", false)
         set(value) = prefs.edit().putBoolean("keep_last_map_position", value).apply()
 
+    /** 路线停止后不回到真实位置，在停下的地方接着定点模拟 */
+    var stayAtRouteStopPoint: Boolean
+        get() = prefs.getBoolean("stay_at_route_stop_point", false)
+        set(value) = prefs.edit().putBoolean("stay_at_route_stop_point", value).apply()
+
     var lastMapLat: String
         get() = prefs.getString("last_map_lat", "") ?: ""
         set(value) = prefs.edit().putString("last_map_lat", value).apply()

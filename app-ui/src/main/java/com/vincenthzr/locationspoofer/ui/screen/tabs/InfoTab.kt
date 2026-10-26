@@ -2,7 +2,6 @@ package com.vincenthzr.locationspoofer.ui.screen.tabs
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,8 +12,6 @@ import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.Map
-import androidx.compose.material.icons.rounded.Security
-import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.VpnKey
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme

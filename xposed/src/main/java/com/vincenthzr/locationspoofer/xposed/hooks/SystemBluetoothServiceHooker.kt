@@ -18,7 +18,6 @@ package com.vincenthzr.locationspoofer.xposed.hooks
 
 import android.os.IBinder
 import android.os.IInterface
-import android.util.Log
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
 import com.vincenthzr.locationspoofer.xposed.hooks.network.*
 import com.vincenthzr.locationspoofer.xposed.hooks.vendor.SystemComponent
@@ -27,10 +26,8 @@ import com.vincenthzr.locationspoofer.xposed.hooks.vendor.SystemClassLocator
 import com.vincenthzr.locationspoofer.xposed.utils.*
 import org.json.JSONObject
 import java.lang.ref.WeakReference
-import java.util.Collections
 import java.util.Timer
 import java.util.TimerTask
-import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
 
 private fun sysLog(msg: String) = XposedBridge.log(msg)
