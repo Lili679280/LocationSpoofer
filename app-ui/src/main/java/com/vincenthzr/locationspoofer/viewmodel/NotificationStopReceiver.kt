@@ -29,6 +29,11 @@ class NotificationStopReceiver : BroadcastReceiver(), KoinComponent {
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.Main).launch {
             try {
+                if (!settingsRepository.isSpoofingActive && !motionController.state.value.active) {
+                    // 已经停了、只剩"交还真实位置"那几秒，立即结束，不再重新交还一次
+                    realLocationHandoff.finishNow()
+                    return@launch
+                }
                 settingsRepository.isSpoofingActive = false
                 motionController.onStopped()
                 locationRepository.stopSpoofing(context)

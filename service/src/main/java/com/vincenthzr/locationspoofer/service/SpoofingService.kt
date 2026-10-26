@@ -54,7 +54,9 @@ class SpoofingService : Service() {
 
             ACTION_STOP -> stopSpoofing()
         }
-        return START_STICKY
+        // 被系统回收后重启时重新投递上次的 ACTION_START，通知和停止按钮跟着恢复；
+        // START_STICKY 重启时 intent 为空，模拟还在跑却没有通知
+        return START_REDELIVER_INTENT
     }
 
     @SuppressLint("WakelockTimeout")
@@ -108,7 +110,10 @@ class SpoofingService : Service() {
                 startForeground(NOTIFICATION_ID, notification)
             }
         } catch (e: Throwable) {
+            // 进不了前台（例如没有定位权限）就立即结束；不结束的话系统约 10 秒后会以"未按时进入前台"杀掉整个进程
             e.printStackTrace()
+            stopSpoofing()
+            return
         }
         isRunning = true
     }

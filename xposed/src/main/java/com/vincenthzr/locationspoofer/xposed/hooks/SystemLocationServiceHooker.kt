@@ -1519,41 +1519,51 @@ private fun LocationHooker.hookPendingIntentDelivery(classLoader: ClassLoader) {
     if (hookedCallbackClasses.putIfAbsent(piClass, true) != null) return
 
     XposedHelpers.hookAllMethods(piClass, "send") { chain, _ ->
-        val config = readConfig()
-        if (config != null && config.optBoolean("active", false)) {
-            val pi = chain.thisObject as? android.app.PendingIntent
-            val isTarget = if (pi != null && activePendingIntents.containsKey(pi)) {
-                true
-            } else {
-                val pkg = pi?.creatorPackage
-                pkg != null && SystemHookUtils.isTargetCaller(chain.thisObject, pkg, config)
-            }
-            if (isTarget) {
-                val motion = getCurrentSpoofedMotion("WGS-84")
-                if (motion != null) {
-                    val altitude = RouteEngine.realisticAltitude(config)
-                    val accuracy = getJitteredAccuracy()
-                    for (arg in chain.args) {
-                        if (arg is android.content.Intent) {
-                            @Suppress("DEPRECATION")
-                            val loc = arg.getParcelableExtra<android.location.Location>(android.location.LocationManager.KEY_LOCATION_CHANGED)
-                                ?: arg.getParcelableExtra<android.location.Location>("location")
-                            if (loc != null) {
-                                SystemHookUtils.applyFakeLocationFields(loc, motion, altitude, accuracy)
-                            }
-                            try {
-                                @Suppress("DEPRECATION")
-                                val locList = arg.getParcelableArrayListExtra<android.location.Location>("locations")
-                                locList?.forEach { SystemHookUtils.applyFakeLocationFields(it, motion, altitude, accuracy) }
-                            } catch (_: Throwable) {}
-                        }
-                    }
-                }
-            }
+        // 每次 PendingIntent.send 都会经过这里（整个 system_server），改写失败也必须照常发送
+        try {
+            rewritePendingIntentLocations(chain.thisObject, chain.args)
+        } catch (t: Throwable) {
+            logLoc("[SysLoc] PendingIntent location rewrite failed: $t")
         }
         return@hookAllMethods chain.proceed(chain.args.toTypedArray())
     }
     logLoc("[SysLoc] PendingIntent.send hooked for location intent rewrite")
+}
+
+private fun LocationHooker.rewritePendingIntentLocations(thisObject: Any?, args: List<Any?>) {
+    val config = readConfig()
+    if (config != null && config.optBoolean("active", false)) {
+        val pi = thisObject as? android.app.PendingIntent
+        val isTarget = if (pi != null && activePendingIntents.containsKey(pi)) {
+            true
+        } else {
+            val pkg = pi?.creatorPackage
+            pkg != null && SystemHookUtils.isTargetCaller(thisObject, pkg, config)
+        }
+        if (isTarget) {
+            val motion = getCurrentSpoofedMotion("WGS-84")
+            if (motion != null) {
+                val altitude = RouteEngine.realisticAltitude(config)
+                val accuracy = getJitteredAccuracy()
+                for (arg in args) {
+                    if (arg is android.content.Intent) {
+                        // 按 Parcelable 取再判断类型：别的 App 也可能用 "location" 这个键放不是 Location 的东西
+                        @Suppress("DEPRECATION")
+                        val loc = (arg.getParcelableExtra<android.os.Parcelable>(android.location.LocationManager.KEY_LOCATION_CHANGED)
+                            ?: arg.getParcelableExtra<android.os.Parcelable>("location")) as? android.location.Location
+                        if (loc != null) {
+                            SystemHookUtils.applyFakeLocationFields(loc, motion, altitude, accuracy)
+                        }
+                        try {
+                            @Suppress("DEPRECATION")
+                            val locList = arg.getParcelableArrayListExtra<android.location.Location>("locations")
+                            locList?.forEach { SystemHookUtils.applyFakeLocationFields(it, motion, altitude, accuracy) }
+                        } catch (_: Throwable) {}
+                    }
+                }
+            }
+        }
+    }
 }
 
 /** Hook IGnssStatusListener 实例的 onSvStatusChanged 回调，注入 20+ 真实卫星矩阵 */

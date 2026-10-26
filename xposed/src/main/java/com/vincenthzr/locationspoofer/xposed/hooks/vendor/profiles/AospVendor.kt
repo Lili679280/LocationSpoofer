@@ -65,7 +65,7 @@ object AospVendor : SystemHookVendor {
     /**
      * 原生 Android 上 GMS 就是系统的定位融合引擎（谷歌地图等 App 的位置由它算出），必须照常喂模拟数据；
      * 否则它用真实 Wi-Fi / 基站算出真实位置，把模拟的 GNSS 判为"移动过快"丢弃，地图会跳回真实位置。
-     * 只对实际命中 AOSP 适配器的机型生效，小米 / OPPO / 三星等 OEM 适配器的行为不变。
+     * 以后新增厂商适配器时，若该系统有自己的定位融合服务，需要自行决定是否也取消 GMS 豁免。
      */
     override fun removedBaseExemptPackages(): Set<String> = setOf("com.google.android.gms")
 }

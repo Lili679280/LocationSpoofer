@@ -108,7 +108,6 @@ class MainViewModel(
     val spoofingUiState: StateFlow<SpoofingUiState> =
         _spoofingUiState.asStateFlow()
 
-    internal var locationSyncJob: Job? = null
     internal var continuousScanJob: Job? = null
 
     init {

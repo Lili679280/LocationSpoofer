@@ -192,8 +192,10 @@ internal fun LocationHooker.hookSystemTelephonyService(classLoader: ClassLoader)
                 }
             } catch (e: Throwable) {
                 sysLog("[SysCell] build fake CellLocation failed: $e")
-                return@hookAllMethods chain.proceed(chain.args.toTypedArray())
             }
+            // 返回类型都没匹配上或构造失败：放行真实结果。漏掉这一句时 lambda 的最后一个表达式是 if，
+            // 会把 kotlin.Unit 当成返回值交给 binder，调用方收到 ClassCastException
+            chain.proceed(chain.args.toTypedArray())
         }
         sysLog("[SysCell] PhoneInterfaceManager.getCellLocation hooked")
     } catch (e: Throwable) {
@@ -258,6 +260,6 @@ internal fun LocationHooker.hookSystemTelephonyRegistry(classLoader: ClassLoader
     val registryClass = SystemClassLocator.locate(SystemComponent.TELEPHONY_REGISTRY, classLoader) ?: return
     if (hookedCallbackClasses.putIfAbsent(registryClass, true) != null) return
     val delivery = TelephonyCallbackDelivery(this, classLoader)
-    vendorExtraHooks.add(delivery)
+    hotReloadCloseables.add(delivery)
     delivery.install(registryClass)
 }

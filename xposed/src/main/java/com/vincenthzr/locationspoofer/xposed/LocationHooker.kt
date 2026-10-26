@@ -140,8 +140,8 @@ class LocationHooker : XposedModule() {
         handleLoadPackage("android", param.classLoader)
     }
 
-    // LibXposed API 102: 热重载请求前置确认与资源清理
-    internal val vendorExtraHooks = mutableListOf<AutoCloseable>()
+    // LibXposed API 102: 热重载前要关闭的额外资源（例如基站回调派发器）
+    internal val hotReloadCloseables = mutableListOf<AutoCloseable>()
 
     @Volatile internal var retiringGeneration = false
     private val ownedReloadTimers = java.util.Collections.synchronizedSet(mutableSetOf<java.util.Timer>())
@@ -192,8 +192,8 @@ class LocationHooker : XposedModule() {
             ownedReloadTimers.forEach { it.cancel() }
             ownedReloadTimers.clear()
         }
-        vendorExtraHooks.asReversed().forEach { runCatching { it.close() } }
-        vendorExtraHooks.clear()
+        hotReloadCloseables.asReversed().forEach { runCatching { it.close() } }
+        hotReloadCloseables.clear()
         ModuleBinderDeaths.close()
         HookStatus.close()
         nmeaTimers.values.forEach { it.cancel() }
@@ -366,7 +366,7 @@ class LocationHooker : XposedModule() {
             }
         } catch (_: Throwable) {}
 
-        // 能走到这里说明不是系统进程（系统进程已在上面的 handleSystemProcessXxx 中提前返回）
+        // 能走到这里说明不是系统进程（系统进程已在上面的 handleSystemProcess 中提前返回）
         hookWifiEnvironment(classLoader)
         hookCellEnvironment(classLoader)
         hookConnectivityLayer(classLoader)
@@ -616,7 +616,7 @@ class LocationHooker : XposedModule() {
                                 val newConfig = readConfig()
 
                                 // 若系统核心服务在初次加载时尚未初始化完成，在后台轮询线程中重试挂载，直至成功
-                                // isXxxProcess 标记只在全局方案的系统进程分支里被置位，非全局方案下这三个条件恒为 false
+                                // isXxxProcess 标记只在 handleSystemProcess 里被置位，普通应用进程里这三个条件恒为 false
                                 if (isSystemServerProcess && !isWifiServiceHooked && currentClassLoader != null) {
                                     try { hookSystemWifiService(currentClassLoader!!) } catch (t: Throwable) { XposedBridge.log("[SysWifi] Poller hookSystemWifiService error: $t") }
                                 }

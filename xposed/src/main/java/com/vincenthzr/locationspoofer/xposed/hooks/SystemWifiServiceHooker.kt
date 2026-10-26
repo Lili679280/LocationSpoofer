@@ -359,7 +359,9 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
                     } catch (_: Throwable) {}
                 }
 
-                if (returnType == null || returnType.isAssignableFrom(java.util.ArrayList::class.java) || returnType.name.contains("List")) {
+                // 只有返回类型真能装下 ArrayList 才直接返回列表；"ParceledListSlice" 的名字里也有 List，
+                // 上面几种构造都失败时按名字判断会把 ArrayList 交给 binder，调用方收到 ClassCastException
+                if (returnType == null || returnType.isAssignableFrom(java.util.ArrayList::class.java)) {
                     return@hookAllMethods fakeList
                 }
                 return@hookAllMethods realResult

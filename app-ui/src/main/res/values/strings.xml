@@ -146,6 +146,7 @@
     <string name="still">Still</string>
     <string name="waiting_gps_signal">No cached location, waiting for GPS signal (may be slow/unavailable indoors)</string>
     <string name="native_location_success">Native location success!</string>
+    <string name="native_location_failed">Could not get a location. Try outdoors or again later</string>
     <string name="location_permission_denied">Precise location permission not granted, cannot fetch location</string>
     <string name="disable_continuous_scan_first">Please disable \'Continuous Scan\' before starting spoofing</string>
     <string name="disable_continuous_scan_route_first">Please disable \'Continuous Scan\' before starting route planning</string>

@@ -455,7 +455,7 @@ internal fun MainViewModel.exportEnvironmentData(
             val dataPackage = com.vincenthzr.locationspoofer.data.db.LocationSpooferDataPackage(
                 version = 4,
                 exportTimestamp = System.currentTimeMillis(),
-                appVersion = "2.0.0",
+                appVersion = com.vincenthzr.locationspoofer.ui.BuildConfig.VERSION_NAME,
                 locations = locations,
                 collectionRoutes = collectionRoutes,
                 savedLocations = savedLocations,

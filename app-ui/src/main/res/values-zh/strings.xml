@@ -150,6 +150,7 @@
     <string name="still">静止</string>
     <string name="waiting_gps_signal">系统未缓存位置，正在等待GPS信号(室内可能极慢或无信号)</string>
     <string name="native_location_success">原生定位成功！</string>
+    <string name="native_location_failed">没有拿到定位，请到室外或稍后再试</string>
     <string name="location_permission_denied">未授予精准定位权限，无法获取位置</string>
     <string name="disable_continuous_scan_first">请先关闭“大面积扫街模式”再开启模拟定位</string>
     <string name="disable_continuous_scan_route_first">请先关闭“大面积扫街模式”再开启路线模拟</string>

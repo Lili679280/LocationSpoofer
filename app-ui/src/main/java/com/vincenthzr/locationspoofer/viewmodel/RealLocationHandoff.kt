@@ -54,6 +54,8 @@ class RealLocationHandoff(
         job = scope.launch {
             // 优先用百度网络定位（室内也能很快拿到，且不经过被模拟改写过的系统定位源），拿不到再等系统新定位
             val real = fetchBaiduLocationGcj() ?: awaitFreshRealLocationGcj(stoppedAt) ?: return@launch
+            // 定位期间又开始了新的模拟（界面、Tasker 都会先记下"正在模拟"），交还作废，不能盖掉新配置
+            if (settingsRepository.isSpoofingActive) return@launch
             _realLocation.tryEmit(real)
             locationRepository.startSpoofing(
                 context, real.first, real.second,
@@ -66,8 +68,15 @@ class RealLocationHandoff(
                 enableJitter = false
             )
             delay(REAL_LOCATION_HANDOFF_MS)
-            locationRepository.stopSpoofing(context)
+            if (!settingsRepository.isSpoofingActive) locationRepository.stopSpoofing(context)
         }
+    }
+
+    /** 交还进行中时立即结束（通知栏又点了一次停止）：不再等那几秒，直接停掉 */
+    fun finishNow() {
+        val running = job?.isActive == true
+        cancel()
+        if (running && !settingsRepository.isSpoofingActive) scope.launch { locationRepository.stopSpoofing(context) }
     }
 
     /** 新的模拟开始时取消还没走完的交还过程，免得它稍后把新模拟停掉 */
@@ -104,6 +113,8 @@ class RealLocationHandoff(
                             if (withGps) com.baidu.location.LocationClientOption.LocationMode.Hight_Accuracy
                             else com.baidu.location.LocationClientOption.LocationMode.Battery_Saving
                         )
+                        // 高精度模式也要单独打开 GNSS，否则百度照样只用网络定位
+                        setOpenGnss(withGps)
                         setOnceLocation(true)
                         setIsNeedAddress(false)
                     }

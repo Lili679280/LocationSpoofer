@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import com.vincenthzr.locationspoofer.data.repository.LocationRepository
 import com.vincenthzr.locationspoofer.data.repository.SettingsRepository
+import com.vincenthzr.locationspoofer.data.state.NotificationActions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,6 +46,10 @@ class SpoofingControlReceiver : BroadcastReceiver(), KoinComponent {
         val index = intent.getIntExtra(EXTRA_FAVORITE, -1)
         val loc = settingsRepository.getSavedLocations().getOrNull(index) ?: return
 
+        // 先记下"正在模拟"：还在进行的"交还真实位置"看到它就会作废，不会盖掉这次启动
+        settingsRepository.isSpoofingActive = true
+        settingsRepository.lastSpoofedLat = loc.lat.toString()
+        settingsRepository.lastSpoofedLng = loc.lng.toString()
         val now = System.currentTimeMillis()
         locationRepository.startSpoofing(
             context, loc.lat, loc.lng,
@@ -55,13 +60,10 @@ class SpoofingControlReceiver : BroadcastReceiver(), KoinComponent {
             settingsRepository.mockWifi, settingsRepository.mockCell, settingsRepository.mockBluetooth,
             settingsRepository.enableJitter
         )
-        settingsRepository.isSpoofingActive = true
-        settingsRepository.lastSpoofedLat = loc.lat.toString()
-        settingsRepository.lastSpoofedLng = loc.lng.toString()
     }
 
-    private suspend fun handleStop(context: Context) {
-        settingsRepository.isSpoofingActive = false
-        locationRepository.stopSpoofing(context)
+    /** 和通知栏的"停止模拟"走同一条路：路线、悬浮摇杆、界面一起停，并交还真实位置 */
+    private fun handleStop(context: Context) {
+        context.sendBroadcast(Intent(NotificationActions.STOP).setPackage(context.packageName))
     }
 }

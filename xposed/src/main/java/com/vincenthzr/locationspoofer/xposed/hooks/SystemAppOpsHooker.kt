@@ -48,7 +48,14 @@ internal fun LocationHooker.hookSystemAppOpsService(classLoader: ClassLoader) {
                         if (codeArg == 58) { // OP_MOCK_LOCATION
                             val explicitPkg = SystemHookUtils.extractPackageName(chain.args)
                             if (SystemHookUtils.isTargetCaller(chain.thisObject, explicitPkg, config)) {
-                                return@hookAllMethods 1 // MODE_IGNORED
+                                // checkOperation 返回 int；noteOperation 在 Android 11+ 返回 SyncNotedAppOp，
+                                // 直接返回 int 会在 system_server 里抛 ClassCastException，所以改真实结果里的模式
+                                val result = chain.proceed(chain.args.toTypedArray())
+                                return@hookAllMethods if (result is Int) {
+                                    1 // MODE_IGNORED
+                                } else {
+                                    result?.also { runCatching { XposedHelpers.setIntField(it, "mOpMode", 1) } }
+                                }
                             }
                         }
                     }

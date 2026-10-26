@@ -570,10 +570,18 @@ private fun MainViewModel.startSimulationWithPoints(pointsToRun: List<RoutePoint
     SpoofingState.longitude = startPoint.lng
     SpoofingState.simBearing = 0f
 
+    // 和定点模拟一样记下"正在模拟"：界面重建后（退出再打开、从通知打开）才知道要显示停止按钮，
+    // 通知栏的停止和"交还真实位置"也靠它判断有没有新的模拟在跑
+    settingsRepository.isSpoofingActive = true
+    settingsRepository.lastSpoofedLat = startPoint.lat.toString()
+    settingsRepository.lastSpoofedLng = startPoint.lng.toString()
+
     viewModelScope.launch {
         // 配置必须来自路线起点，避免将此前地图位置的环境数据带入模拟。
         val records = environmentRecordsAt(startPoint.lat, startPoint.lng)
         val (wifi, cell, bluetooth) = locationToJson(records, startPoint.lat, startPoint.lng)
+        // 读环境数据期间已经点了停止：不再启动，免得路线在界面显示"已停止"时照样跑
+        if (_uiState.value.routePlanStage != RoutePlanStage.RUNNING) return@launch
         _uiState.update { it.copy(collectedWifiJson = wifi, collectedCellJson = cell, collectedBluetoothJson = bluetooth) }
         locationRepository.startSpoofing(
             context,
@@ -616,10 +624,9 @@ private fun MainViewModel.startSimulationWithPoints(pointsToRun: List<RoutePoint
  * （路线设置里的"停止后留在原地"）；之后在定位页再点停止才彻底结束。
  */
 internal fun MainViewModel.stopRoutePlanning(stayAtStopPoint: Boolean = _uiState.value.stayAtRouteStopPoint) {
-    if (stayAtStopPoint) {
-        val motion = motionController.state.value
-        locationSyncJob?.cancel()
-        locationSyncJob = null
+    val motion = motionController.state.value
+    // 路线还没真正跑起来（启动中就点了停止）时没有"停下的地方"，按普通停止处理
+    if (stayAtStopPoint && motion.active) {
         motionController.onStopped()
         environmentUpdateJob?.cancel()
         _uiState.update {
@@ -627,16 +634,14 @@ internal fun MainViewModel.stopRoutePlanning(stayAtStopPoint: Boolean = _uiState
                 routePlanStage = RoutePlanStage.IDLE,
                 routePoints = emptyList(),
                 routeRunMode = RouteRunMode.LOOP,
-                latitudeInput = if (motion.active) formatCoordinateInput(motion.lat) else it.latitudeInput,
-                longitudeInput = if (motion.active) formatCoordinateInput(motion.lng) else it.longitudeInput
+                latitudeInput = formatCoordinateInput(motion.lat),
+                longitudeInput = formatCoordinateInput(motion.lng)
             )
         }
-        startSpoofing(restartApps = false)
+        startSpoofing(restartApps = false, fetchOnline = false)
         return
     }
     settingsRepository.isSpoofingActive = false
-    locationSyncJob?.cancel()
-    locationSyncJob = null
     motionController.onStopped()
     environmentUpdateJob?.cancel()
     viewModelScope.launch {

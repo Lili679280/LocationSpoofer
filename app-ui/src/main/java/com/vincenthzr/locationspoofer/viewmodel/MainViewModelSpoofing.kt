@@ -14,8 +14,12 @@ import kotlinx.coroutines.withContext
 
 // MainViewModel 的模拟开关、摇杆移动与持续扫描相关扩展函数
 
-/** 定点模拟。[restartApps] 为 false 时忽略"开始模拟时重启目标应用"（路线停下后原地接着模拟时用，不该打断正在用的 App） */
-internal fun MainViewModel.startSpoofing(restartApps: Boolean = true) {
+/**
+ * 定点模拟。路线停下后原地接着模拟时两个参数都传 false：[restartApps] 忽略"开始模拟时重启目标应用"，
+ * 不打断正在用的 App；[fetchOnline] 不等 WiGLE / OpenCellID 联网查询，尽快把定点配置写下去，
+ * 否则查询期间系统里仍是路线配置，位置会继续沿路线走一段再跳回停下的地方。
+ */
+internal fun MainViewModel.startSpoofing(restartApps: Boolean = true, fetchOnline: Boolean = true) {
     val state = _uiState.value
 
     if (state.isContinuousScanning || state.isStoppingCollection) {
@@ -42,10 +46,10 @@ internal fun MainViewModel.startSpoofing(restartApps: Boolean = true) {
     viewModelScope.launch {
         _uiState.update { it.copy(isSavingConfig = true) }
 
-        if (state.mockWifi && !hasLocalWifiWithin50m(lat, lng)) {
+        if (fetchOnline && state.mockWifi && !hasLocalWifiWithin50m(lat, lng)) {
             fetchWifiFromWigleSync(lat, lng)
         }
-        if (state.mockCell && !hasLocalCellsWithin50m(lat, lng)) {
+        if (fetchOnline && state.mockCell && !hasLocalCellsWithin50m(lat, lng)) {
             fetchCellFromOpenCellIdSync(lat, lng)
         }
 
@@ -123,11 +127,16 @@ internal fun MainViewModel.stopSpoofing(fullStop: Boolean = false) {
         stopRoutePlanning(stayAtStopPoint = !fullStop && _uiState.value.stayAtRouteStopPoint)
         return
     }
-    if (!_uiState.value.isSpoofingActive) return
+    // 界面重建后（例如退出再从通知打开）界面状态可能还没反映正在跑的模拟，所以三处都看
+    val running = _uiState.value.isSpoofingActive || settingsRepository.isSpoofingActive || motionController.state.value.active
+    if (!running) {
+        // 已经停了、只剩"交还真实位置"那几秒：通知栏的停止让它立即结束
+        if (fullStop) realLocationHandoff.finishNow()
+        return
+    }
     settingsRepository.isSpoofingActive = false
-    locationSyncJob?.cancel()
-    locationSyncJob = null
     motionController.onStopped()
+    environmentUpdateJob?.cancel()
     viewModelScope.launch {
         locationRepository.stopSpoofing(context)
         _uiState.update {

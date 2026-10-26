@@ -98,7 +98,17 @@ private fun MainViewModel.fallbackToNativeLocation(
             android.os.CancellationSignal(),
             androidx.core.content.ContextCompat.getMainExecutor(ctx)
         ) { location ->
-            if (location == null) return@getCurrentLocation
+            if (location == null) {
+                // 系统定位超时（约 30 秒）也要告诉用户，否则手动点"当前定位"后什么反应都没有
+                if (forceCallback != null && lastLoc == null) {
+                    android.widget.Toast.makeText(
+                        ctx,
+                        ctx.getString(com.vincenthzr.locationspoofer.ui.R.string.native_location_failed),
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                }
+                return@getCurrentLocation
+            }
             if (forceCallback != null) {
                 android.widget.Toast.makeText(
                     ctx,
