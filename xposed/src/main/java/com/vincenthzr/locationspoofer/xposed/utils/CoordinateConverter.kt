@@ -78,12 +78,14 @@ fun bd09llToBd09mc(bdLat: Double, bdLng: Double): Pair<Double, Double> {
  * @param rawGcjLng 基础 GCJ-02 经度
  * @param config 全局配置 JSON
  * @param defaultSystem 当未配置自定义算法时的默认坐标系（如高德/腾讯默认 GCJ-02，百度默认 BD-09）
+ * @param packageName 接收位置的 App；在系统进程里投递时必须传，否则按当前进程（android / 电话）查不到用户的设置
  */
 internal fun LocationHooker.getAppTargetCoordinate(
     rawGcjLat: Double,
     rawGcjLng: Double,
     config: JSONObject?,
-    defaultSystem: String = "GCJ-02"
+    defaultSystem: String = "GCJ-02",
+    packageName: String? = null
 ): Pair<Double, Double> {
     if (config == null) return when (defaultSystem) {
         "WGS-84" -> gcj02ToWgs84(rawGcjLat, rawGcjLng)
@@ -91,7 +93,7 @@ internal fun LocationHooker.getAppTargetCoordinate(
         else -> Pair(rawGcjLat, rawGcjLng)
     }
     val appSystems = config.optJSONObject("app_coordinate_systems")
-    val basePkg = currentPackageName.substringBefore(":")
+    val basePkg = (packageName ?: currentPackageName).substringBefore(":")
 
     // 优先读取用户在“自定义坐标算法”页面针对当前包名的个性化配置
     val userConfigured = if (appSystems?.has(basePkg) == true) {
@@ -118,10 +120,13 @@ internal fun LocationHooker.getAppTargetCoordinate(
     }
 }
 
+/** 抖动状态会被多个 binder 线程同时推进，统一加锁 */
+private val jitterLock = Any()
+
 internal fun LocationHooker.getJitteredLocation(
     baseLat: Double,
     baseLng: Double
-): Pair<Double, Double> {
+): Pair<Double, Double> = synchronized(jitterLock) {
     val enableJitter = lastConfig?.optBoolean("enable_jitter", true) ?: true
     if (!enableJitter) return Pair(baseLat, baseLng)
 
@@ -143,11 +148,11 @@ internal fun LocationHooker.getJitteredLocation(
         (hookDriftLng + sigma * sqrt(dt) * rng.nextGaussian() - alpha * hookDriftLng * dt)
             .coerceIn(-0.00004, 0.00004)
 
-    return Pair(baseLat + hookDriftLat, baseLng + hookDriftLng)
+    Pair(baseLat + hookDriftLat, baseLng + hookDriftLng)
 }
 
-internal fun LocationHooker.getJitteredAccuracy(): Float {
+internal fun LocationHooker.getJitteredAccuracy(): Float = synchronized(jitterLock) {
     // 精度值在真实优良室外环境(1.5m-3.5m)微弱起伏，运动与地图软件将判定为满格绿色强信号
     hookAccuracyDrift += 0.1 * rng.nextGaussian() - 0.05 * hookAccuracyDrift
-    return (2.2 + hookAccuracyDrift).coerceIn(1.5, 3.5).toFloat()
+    (2.2 + hookAccuracyDrift).coerceIn(1.5, 3.5).toFloat()
 }

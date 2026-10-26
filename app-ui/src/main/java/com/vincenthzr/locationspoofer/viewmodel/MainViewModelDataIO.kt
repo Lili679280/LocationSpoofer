@@ -439,7 +439,14 @@ internal fun MainViewModel.exportEnvironmentData(
                     altitudeVariationM = settingsRepository.altitudeVariationM,
                     satelliteCount = settingsRepository.satelliteCount,
                     mapType = settingsRepository.getMapType(),
-                    mapEngine = settingsRepository.getMapEngine()
+                    mapEngine = settingsRepository.getMapEngine(),
+                    realismLevel = settingsRepository.realismLevel,
+                    speedFluctuationPct = settingsRepository.speedFluctuationPct,
+                    restartAppsOnSpoof = settingsRepository.restartAppsOnSpoof,
+                    keepLastMapPosition = settingsRepository.keepLastMapPosition,
+                    stayAtRouteStopPoint = settingsRepository.stayAtRouteStopPoint,
+                    systemHookGlobalMode = settingsRepository.isSystemHookGlobalMode,
+                    systemHookPackages = settingsRepository.getSystemHookPackages().sorted()
                 )
             } else null
             val apiKeys = if (selection.apiKeys) {
@@ -626,6 +633,13 @@ internal fun MainViewModel.applyImportPackage(
                     if (s.satelliteCount.isNotBlank()) settingsRepository.satelliteCount = s.satelliteCount
                     if (s.mapType.isNotBlank()) settingsRepository.setMapType(s.mapType)
                     if (s.mapEngine.isNotBlank()) settingsRepository.setMapEngine(s.mapEngine)
+                    s.realismLevel?.let { settingsRepository.realismLevel = it }
+                    s.speedFluctuationPct?.let { settingsRepository.speedFluctuationPct = it }
+                    s.restartAppsOnSpoof?.let { settingsRepository.restartAppsOnSpoof = it }
+                    s.keepLastMapPosition?.let { settingsRepository.keepLastMapPosition = it }
+                    s.stayAtRouteStopPoint?.let { settingsRepository.stayAtRouteStopPoint = it }
+                    s.systemHookGlobalMode?.let { settingsRepository.isSystemHookGlobalMode = it }
+                    s.systemHookPackages?.let { settingsRepository.setSystemHookPackages(it.toSet()) }
                 }
             }
             if (selection.apiKeys) {
@@ -651,6 +665,13 @@ internal fun MainViewModel.applyImportPackage(
                     mockCell = settingsRepository.mockCell,
                     mockBluetooth = settingsRepository.mockBluetooth,
                     enableJitter = settingsRepository.enableJitter,
+                    realismLevel = settingsRepository.realismLevel,
+                    speedFluctuationPct = settingsRepository.speedFluctuationPct,
+                    restartAppsOnSpoof = settingsRepository.restartAppsOnSpoof,
+                    keepLastMapPosition = settingsRepository.keepLastMapPosition,
+                    stayAtRouteStopPoint = settingsRepository.stayAtRouteStopPoint,
+                    isSystemHookGlobalMode = settingsRepository.isSystemHookGlobalMode,
+                    systemHookPackages = settingsRepository.getSystemHookPackages(),
                     altitudeInput = settingsRepository.altitude.ifBlank { it.altitudeInput },
                     altitudeVariationM = settingsRepository.altitudeVariationM,
                     satelliteCountInput = settingsRepository.satelliteCount.ifBlank { it.satelliteCountInput },

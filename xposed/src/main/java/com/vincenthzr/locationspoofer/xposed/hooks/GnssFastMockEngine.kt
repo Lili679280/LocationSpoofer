@@ -20,6 +20,60 @@ object GnssFastMockEngine {
 
     private const val MAX_SATELLITES = 32
 
+    /**
+     * GnssStatus 把每颗卫星的 svid、星座类型、标志位打包进一个 int，Android 11 起位宽变了：
+     * Android 7~10：svid << 8 | 星座 << 4 | 标志（4 位）；Android 11+：svid << 12 | 星座 << 8 | 标志（8 位，多了 HAS_BASEBAND_CN0）。
+     */
+    fun packSvidWithFlags(svid: Int, constellationType: Int, flags: Int): Int =
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            (svid shl 12) or ((constellationType and 0xF) shl 8) or (flags and 0xFF)
+        } else {
+            (svid shl 8) or ((constellationType and 0xF) shl 4) or (flags and 0xF)
+        }
+
+    /** 旧版 IGnssStatusListener.onSvStatusChanged 的数组参数（Android 7~10 六个，Android 11 多一个 basebandCn0） */
+    class LegacySvArrays(
+        val count: Int,
+        val svidWithFlags: IntArray,
+        val cn0DbHz: FloatArray,
+        val elevations: FloatArray,
+        val azimuths: FloatArray,
+        val carrierFrequencies: FloatArray,
+        val basebandCn0DbHz: FloatArray
+    )
+
+    fun buildLegacySvArrays(requestedCount: Int, enableJitter: Boolean): LegacySvArrays {
+        val count = requestedCount.coerceIn(4, minOf(MAX_SATELLITES, CONSTELLATION_TYPES.size))
+        val timeStep = System.currentTimeMillis() / 1000L
+        val svidWithFlags = IntArray(count)
+        val cn0s = FloatArray(count)
+        val elevations = FloatArray(count)
+        val azimuths = FloatArray(count)
+        val carrierFreqs = FloatArray(count)
+        val basebandCn0s = FloatArray(count)
+        for (i in 0 until count) {
+            val type = CONSTELLATION_TYPES[i]
+            val driftStep = ((timeStep + i * 3) % 360).toFloat()
+            val elevation = (BASE_ELEVATIONS[i] + (driftStep % 10 - 5)).coerceIn(16f, 88f)
+            val jitter = if (enableJitter) JITTER_TABLE[(timeStep.toInt() + i) and 15] else 0f
+            val cn0 = (34f + (elevation / 90f) * 8f + jitter).coerceIn(30f, 43.5f)
+            var flags = 1 or 2 or 8 // 有星历 | 有历书 | 有载波频率
+            if (elevation > 18f) flags = flags or 4 // 参与定位
+            if (android.os.Build.VERSION.SDK_INT >= 30) flags = flags or 16 // 有基带载噪比
+            svidWithFlags[i] = packSvidWithFlags(SVID_LIST[i], type, flags)
+            cn0s[i] = cn0
+            elevations[i] = elevation
+            azimuths[i] = (BASE_AZIMUTHS[i] + driftStep * 0.1f) % 360f
+            carrierFreqs[i] = when (type) {
+                5 -> 1561098000f
+                3 -> 1602000000f
+                else -> 1575420000f
+            }
+            basebandCn0s[i] = cn0 - 2.5f
+        }
+        return LegacySvArrays(count, svidWithFlags, cn0s, elevations, azimuths, carrierFreqs, basebandCn0s)
+    }
+
     // 预置可信多星座模板 (GPS=1, GLONASS=3, BDS=5, GALILEO=6)
     private val CONSTELLATION_TYPES = intArrayOf(
         // BDS (北斗) - 亚太区域主力
@@ -317,7 +371,8 @@ object GnssFastMockEngine {
 
                         var flags = 1 or 2 // hasEphemeris | hasAlmanac
                         if (usedInFix) flags = flags or 4
-                        svidWithFlags[i] = (svid shl 8) or (type and 0xF) or (flags shl 4)
+                        if (android.os.Build.VERSION.SDK_INT >= 30) flags = flags or 16 // 有基带载噪比
+                        svidWithFlags[i] = packSvidWithFlags(svid, type, flags)
                     }
 
                     holder.svidWithFlagsField!!.set(fallbackOriginalObj, svidWithFlags)

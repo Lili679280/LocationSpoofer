@@ -226,6 +226,10 @@ git clone https://github.com/Lili679280/LocationSpoofer.git
 4. **Reboot** so the system services load the module. A reboot is only needed the first time (or after uninstalling and reinstalling); later in-place updates hot-reload automatically.
 5. In the app, go to "Features → System-level spoofing" to spoof all apps or only selected apps. Step and accelerometer spoofing additionally require the fitness apps to be checked in the scope.
 
+> [!NOTE]
+> **Scope of spoofing**: this app itself, phone / emergency services and apps outside the list always get the real GPS. However, for Google Maps to work, Google Play services must be spoofed too,
+> and it computes Android's "network" and "fused" locations — so an app outside the list that asks Google for its location still gets the spoofed position.
+
 ### 3. Usage Scenarios
 
 #### Fixed-Point Simulation & Environment Locking
@@ -250,6 +254,18 @@ git clone https://github.com/Lili679280/LocationSpoofer.git
   * Go to Settings -> Tap **"Configure App Coordinate System"**;
   * Add the target app's package name;
   * Set the coordinate system to `WGS-84`, `GCJ-02`, or `BD-09`. Hooks will translate coordinates automatically.
+
+### 4. Automation (Tasker / MacroDroid)
+
+Spoofing can be started or stopped with broadcasts sent to the app's package `com.lili679280.locationspoofer`:
+
+| Action | Extra | Effect |
+|---|---|---|
+| `com.vincenthzr.locationspoofer.START` | int `favorite`: index in the favourites list, starting at 0 | Start fixed-point spoofing at that favourite |
+| `com.vincenthzr.locationspoofer.STOP` | none | Stop spoofing, same as the notification's "Stop" |
+
+> [!WARNING]
+> These broadcasts need no permission, so any installed app can send them. They can only start spoofing at one of your saved favourites or stop it; arbitrary coordinates are not accepted.
 
 ---
 

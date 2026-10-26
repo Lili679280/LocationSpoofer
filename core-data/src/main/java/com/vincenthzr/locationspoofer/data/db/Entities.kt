@@ -264,7 +264,15 @@ data class ExportedSettings(
     val altitudeVariationM: Int? = null,
     val satelliteCount: String = "",
     val mapType: String = "",
-    val mapEngine: String = ""
+    val mapEngine: String = "",
+    // 以下是 4.0.0 起加入导出的设置，旧文件里没有，为 null 时导入保持本机原值
+    val realismLevel: Int? = null,
+    val speedFluctuationPct: Int? = null,
+    val restartAppsOnSpoof: Boolean? = null,
+    val keepLastMapPosition: Boolean? = null,
+    val stayAtRouteStopPoint: Boolean? = null,
+    val systemHookGlobalMode: Boolean? = null,
+    val systemHookPackages: List<String>? = null
 )
 
 /**

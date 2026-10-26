@@ -665,8 +665,8 @@ class LocationHooker : XposedModule() {
                                     // 标准 android.location.Location 按规范是 WGS-84，高德等 App 会自行转 GCJ-02；
                                     // 这里若直接给 GCJ-02 会被二次加密、偏移数百米（issue #62）
                                     val (targetLat, targetLng) = getAppTargetCoordinate(motion.lat, motion.lng, newConfig, "WGS-84")
-                                    val pushLat = if (isStationary) targetLat else getJitteredLocation(targetLat, targetLng).first
-                                    val pushLng = if (isStationary) targetLng else getJitteredLocation(targetLat, targetLng).second
+                                    // 抖动只算一次：分两次调用时经纬度来自不同的随机步，漂移每个周期也会多走一步
+                                    val (pushLat, pushLng) = if (isStationary) targetLat to targetLng else getJitteredLocation(targetLat, targetLng)
                                     val pushSpeed = motion.speed
                                     val pushBearing = motion.bearing
                                     val pushAccuracy = if (isStationary) 2.5f else getJitteredAccuracy()

@@ -43,12 +43,13 @@ import io.github.libxposed.api.*
  */
 
 
-internal fun LocationHooker.getCurrentSpoofedMotion(defaultSystem: String = "GCJ-02"): SpoofedMotion? {
+/** [packageName]：接收位置的 App，系统进程里投递时传它，按 App 应用"配置应用坐标系"里的设置 */
+internal fun LocationHooker.getCurrentSpoofedMotion(defaultSystem: String = "GCJ-02", packageName: String? = null): SpoofedMotion? {
     val config = readConfig() ?: return null
     if (!config.optBoolean("active", false)) return null
 
     val rawMotion = RouteEngine.calculateCurrentPosition(config)
-    val finalCoords = getAppTargetCoordinate(rawMotion.lat, rawMotion.lng, config, defaultSystem)
+    val finalCoords = getAppTargetCoordinate(rawMotion.lat, rawMotion.lng, config, defaultSystem, packageName)
     val jittered = getJitteredLocation(finalCoords.first, finalCoords.second)
     return SpoofedMotion(jittered.first, jittered.second, rawMotion.bearing, rawMotion.speed)
 }

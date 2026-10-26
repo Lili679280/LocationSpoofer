@@ -47,6 +47,13 @@ import com.vincenthzr.locationspoofer.viewmodel.setIgnoredVersion
 import org.koin.androidx.compose.koinViewModel
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import kotlinx.coroutines.delay
+import kotlin.math.abs
+
+/** 启动时把地图移到初始坐标：最多重试的次数、两次之间的间隔、判定"已到位"的误差（约 100 米） */
+private const val INITIAL_CENTER_ATTEMPTS = 30
+private const val INITIAL_CENTER_RETRY_MS = 200L
+private const val INITIAL_CENTER_TOLERANCE_DEG = 0.001
 
 enum class BottomTab(val icon: ImageVector) {
     Location(Icons.Rounded.MyLocation),
@@ -163,7 +170,21 @@ fun MainScaffoldScreen(
         val controller = mapController ?: return@LaunchedEffect
         val lat = uiState.latitudeInput.toDoubleOrNull() ?: return@LaunchedEffect
         val lng = uiState.longitudeInput.toDoubleOrNull() ?: return@LaunchedEffect
-        controller.moveCamera(lat, lng, 15f)
+        // 高德地图刚加载完的一小段时间里会无视镜头移动（相机仍停在 SDK 默认的北京），没开模拟、
+        // 真实位置在地图加载后才拿到时就会这样。移动后确认镜头真的到位，没到位稍后重试；
+        // 居中之前镜头的变化不算用户选点，免得把北京当成选中的位置存下来
+        repeat(INITIAL_CENTER_ATTEMPTS) {
+            controller.moveCamera(lat, lng, 15f)
+            val cameraLat = controller.cameraTargetLat
+            val cameraLng = controller.cameraTargetLng
+            if (cameraLat != null && cameraLng != null &&
+                abs(cameraLat - lat) < INITIAL_CENTER_TOLERANCE_DEG && abs(cameraLng - lng) < INITIAL_CENTER_TOLERANCE_DEG
+            ) {
+                hasCenteredInitially = true
+                return@LaunchedEffect
+            }
+            delay(INITIAL_CENTER_RETRY_MS)
+        }
         hasCenteredInitially = true
     }
 

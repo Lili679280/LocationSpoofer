@@ -231,6 +231,10 @@ git clone https://github.com/Lili679280/LocationSpoofer.git
 4. **重启手机**让系统服务加载模块。只有第一次启用（或卸载后重新安装）需要重启，之后覆盖安装更新会自动热重载。
 5. 在软件"功能 → 系统级模拟"里选择模拟全部应用，或只模拟指定应用。步数与加速度模拟需要额外在作用域里勾选对应的运动应用。
 
+> [!NOTE]
+> **模拟范围**：本软件自己、电话 / 紧急服务和名单外的应用拿到的始终是真实 GPS。但谷歌地图要正常工作，Google Play 服务必须一起被模拟，
+> 而 Android 的"网络定位"和"融合定位"都由它计算——所以名单外的应用如果向 Google 要位置，拿到的仍是模拟位置。
+
 ### 3. 常见场景
 
 #### 定点模拟与环境锁定
@@ -255,6 +259,18 @@ git clone https://github.com/Lili679280/LocationSpoofer.git
   * 进入 LocationSpoofer “设置” -> **“配置应用坐标系”**；
   * 添加目标应用包名；
   * 将坐标系指定为 `WGS-84`、`GCJ-02` 或 `BD-09`，Hook 层将自动根据目标 App 进行转换。
+
+### 4. 自动化（Tasker / MacroDroid）
+
+可以发送广播开始或停止模拟（发给本软件的包名 `com.lili679280.locationspoofer`）：
+
+| 动作 | 参数 | 效果 |
+|---|---|---|
+| `com.vincenthzr.locationspoofer.START` | int `favorite`：收藏列表里的序号，从 0 开始 | 在这个收藏点开始定点模拟 |
+| `com.vincenthzr.locationspoofer.STOP` | 无 | 停止模拟，效果同通知栏的"停止模拟" |
+
+> [!WARNING]
+> 这两个广播不需要权限，手机上任何应用都能发送。它们只能在你自己保存的收藏点之间开始模拟或停止模拟，不能传入任意坐标。
 
 ---
 

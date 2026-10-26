@@ -50,8 +50,14 @@ private fun sysLog(msg: String) = XposedBridge.log(msg)
 private data class BleScannerRegistration(
     val callbackRef: WeakReference<Any>,
     val packageName: String,
-    val registeredTime: Long = System.currentTimeMillis()
+    val registeredTime: Long = System.currentTimeMillis(),
+    /** 扫描方 UID，-1 表示不知道；每次派发都据此重新判断它还是不是目标 */
+    val uid: Int = -1
 )
+
+/** 抓到的扫描者按当前设置重新判断：移出名单、切换模式后立即生效 */
+private fun BleScannerRegistration.isStillTarget(config: JSONObject): Boolean =
+    SystemHookUtils.isTargetCaller(null, packageName.takeUnless { it == "unknown" }, config, uid.takeIf { it > 1000 })
 
 private val activeBleScanners = ConcurrentHashMap<IBinder, BleScannerRegistration>()
 
@@ -62,7 +68,7 @@ private var isBleTimerStarted = false
 internal var isBluetoothServiceHooked = false
 
 internal fun saveSystemBleReloadState(): Array<Any> = activeBleScanners.mapNotNull { (binder, info) ->
-    info.callbackRef.get()?.let { callback -> arrayOf<Any>(binder, callback, info.packageName, info.registeredTime) }
+    info.callbackRef.get()?.let { callback -> arrayOf<Any>(binder, callback, info.packageName, info.registeredTime, info.uid) }
 }.toTypedArray()
 
 internal fun clearSystemBleReloadState() {
@@ -75,7 +81,7 @@ internal fun LocationHooker.restoreSystemBleReloadState(value: Any?) {
         val binder = row[0] as IBinder
         if (!binder.isBinderAlive) return@forEach
         val callback = row[1]!!
-        activeBleScanners[binder] = BleScannerRegistration(WeakReference(callback), row[2] as String, row[3] as Long)
+        activeBleScanners[binder] = BleScannerRegistration(WeakReference(callback), row[2] as String, row[3] as Long, row.getOrNull(4) as? Int ?: -1)
         ensureScannerCallbackHooked(callback)
         runCatching { ModuleBinderDeaths.watch(binder) { activeBleScanners.remove(binder) } }
     }
@@ -149,8 +155,12 @@ private fun LocationHooker.hookScannerEntry(
             try {
                 val config = readConfig()
                 val explicitPkg = config?.let { SystemHookUtils.extractPackageName(chain.args) }
+                // 登记用 isCaptureCandidate：模拟开始前就在扫描的 App 也要先记下，模拟开始后才能接上；
+                // 派发虚拟信标仍要求现在就是目标
+                if (config != null && register && SystemHookUtils.isCaptureCandidate(chain.thisObject, explicitPkg, config)) {
+                    registerTargetScanner(chain.args, explicitPkg)
+                }
                 if (config != null && SystemHookUtils.isTargetCaller(chain.thisObject, explicitPkg, config)) {
-                    if (register) registerTargetScanner(chain.args, explicitPkg)
                     val mocking = config.optBoolean("active", false) && config.optBoolean("mock_bluetooth", true)
                     if (dispatchDelayMs != null && mocking) {
                         sysLog("[SysBle] Target app started BLE scan via $methodName: ${explicitPkg ?: "caller"}")
@@ -189,7 +199,11 @@ private fun LocationHooker.registerTargetScanner(args: List<Any?>, explicitPkg: 
     } ?: return
     val binder = (callback as? IInterface)?.asBinder() ?: (callback as? IBinder) ?: return
     val pkgName = explicitPkg ?: "unknown"
-    activeBleScanners[binder] = BleScannerRegistration(callbackRef = WeakReference(callback), packageName = pkgName)
+    activeBleScanners[binder] = BleScannerRegistration(
+        callbackRef = WeakReference(callback),
+        packageName = pkgName,
+        uid = android.os.Binder.getCallingUid()
+    )
     try {
         ModuleBinderDeaths.watch(binder) {
             activeBleScanners.remove(binder)
@@ -232,6 +246,7 @@ private fun LocationHooker.dispatchFakeBeaconsToActiveScanners(config: JSONObjec
             activeBleScanners.remove(binder)
             continue
         }
+        if (!info.isStillTarget(config)) continue
         val callback = info.callbackRef.get()
         if (callback != null) {
             try {
@@ -249,11 +264,13 @@ private fun LocationHooker.ensureScannerCallbackHooked(callback: Any) {
     val methods = arrayOf("onScanResult", "onBatchScanResults")
     for (mName in methods) {
         try {
+            // Hook 的是所有 App 共用的回调代理类：只拦登记过、且现在仍是目标的扫描者，
+            // 本软件（采集蓝牙）和名单外的 App 照常收到真实结果
             XposedHelpers.hookAllMethods(clazz, mName) { innerChain, _ ->
                 val binder = (innerChain.thisObject as? IInterface)?.asBinder() ?: (innerChain.thisObject as? IBinder)
                 val config = readConfig()
-                val isGlobal = config?.optBoolean("system_hook_global_mode", false) == true
-                val isTarget = (binder != null && activeBleScanners.containsKey(binder)) || isGlobal
+                val info = binder?.let { activeBleScanners[it] }
+                val isTarget = config != null && info != null && info.isStillTarget(config)
                 if (syntheticBleDelivery.current != true && isTarget && config != null && config.optBoolean("active", false) && config.optBoolean("mock_bluetooth", true)) {
                     // 阻止真实物理硬件扫描到的外部蓝牙设备特征泄漏给目标应用
                     return@hookAllMethods null
