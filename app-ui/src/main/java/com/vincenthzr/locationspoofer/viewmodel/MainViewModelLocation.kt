@@ -458,6 +458,57 @@ internal suspend fun MainViewModel.hasLocalWifiWithin50m(lat: Double, lng: Doubl
 internal suspend fun MainViewModel.hasLocalCellsWithin50m(lat: Double, lng: Double): Boolean =
     environmentRecordsAt(lat, lng).any { it.cells.isNotEmpty() }
 
+private const val WIGLE_NAME = "WiGLE"
+private const val OPENCELLID_NAME = "OpenCellID"
+
+/**
+ * 联网查询（WiGLE / OpenCellID）的结果提示：查到几条、附近没有、Token 无效还是网络问题。
+ * 以前失败时什么都不说，用户无从知道配置的 Token 有没有用。
+ */
+private suspend fun MainViewModel.showOnlineLookupResult(
+    source: String,
+    lookup: com.vincenthzr.locationspoofer.utils.OnlineLookup,
+    foundMessage: Int
+) {
+    val message = when (lookup) {
+        is com.vincenthzr.locationspoofer.utils.OnlineLookup.Found -> context.getString(foundMessage, source, lookup.count)
+        com.vincenthzr.locationspoofer.utils.OnlineLookup.NoData -> context.getString(R.string.online_no_data, source)
+        com.vincenthzr.locationspoofer.utils.OnlineLookup.Unauthorized -> context.getString(R.string.online_unauthorized, source)
+        is com.vincenthzr.locationspoofer.utils.OnlineLookup.Failed -> when (lookup.reason) {
+            com.vincenthzr.locationspoofer.utils.OnlineLookup.FailReason.RATE_LIMITED -> context.getString(R.string.online_rate_limited, source)
+            com.vincenthzr.locationspoofer.utils.OnlineLookup.FailReason.SERVER_ERROR -> context.getString(R.string.online_server_error, source, lookup.httpCode)
+            com.vincenthzr.locationspoofer.utils.OnlineLookup.FailReason.NETWORK -> context.getString(R.string.online_network_error, source)
+        }
+    }
+    withContext(Dispatchers.Main) {
+        android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
+    }
+}
+
+/** 联网检测两个环境数据源 Token，[onResult] 在主线程收到可直接展示的结果文字 */
+internal fun MainViewModel.checkEnvTokens(wigleToken: String, opencellidToken: String, onResult: (String) -> Unit) {
+    viewModelScope.launch {
+        fun describe(check: com.vincenthzr.locationspoofer.utils.TokenCheck?, badFormat: Int): String = context.getString(
+            when (check) {
+                null -> R.string.token_status_empty
+                com.vincenthzr.locationspoofer.utils.TokenCheck.VALID -> R.string.token_status_valid
+                com.vincenthzr.locationspoofer.utils.TokenCheck.INVALID -> R.string.token_status_invalid
+                com.vincenthzr.locationspoofer.utils.TokenCheck.BAD_FORMAT -> badFormat
+                com.vincenthzr.locationspoofer.utils.TokenCheck.NETWORK_ERROR -> R.string.token_status_network
+            }
+        )
+        val wigle = wigleToken.takeIf { it.isNotBlank() }?.let { wifiRepository.validateToken(it) }
+        val opencellid = opencellidToken.takeIf { it.isNotBlank() }?.let { opencellidClient.validateToken(it) }
+        onResult(
+            context.getString(
+                R.string.token_check_result,
+                describe(wigle, R.string.token_status_wigle_format),
+                describe(opencellid, R.string.token_status_invalid)
+            )
+        )
+    }
+}
+
 internal suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Double) {
     val settingsToken = settingsRepository.getWigleApiToken()
     if (settingsToken.isBlank()) {
@@ -482,8 +533,9 @@ internal suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Doub
     val wgsLng = wgs84.lng
 
     try {
-        val rawJsonArrayString = wifiRepository.fetchWifiData(wgsLat, wgsLng, settingsToken)
-        val nearbyArr = org.json.JSONArray(rawJsonArrayString)
+        val lookup = wifiRepository.fetchWifiData(wgsLat, wgsLng, settingsToken)
+        showOnlineLookupResult(WIGLE_NAME, lookup, R.string.online_wifi_found)
+        val nearbyArr = org.json.JSONArray((lookup as? com.vincenthzr.locationspoofer.utils.OnlineLookup.Found)?.json ?: "[]")
         if (nearbyArr.length() > 0) {
             val wifiObj = org.json.JSONObject()
             wifiObj.put("isConnected", true)
@@ -607,8 +659,9 @@ internal suspend fun MainViewModel.fetchCellFromOpenCellIdSync(lat: Double, lng:
     val wgsLng = wgs84.lng
 
     try {
-        val rawJsonArrayString = opencellidClient.fetchCellData(wgsLat, wgsLng, tokenToUse)
-        val cellsArray = org.json.JSONArray(rawJsonArrayString)
+        val lookup = opencellidClient.fetchCellData(wgsLat, wgsLng, tokenToUse)
+        showOnlineLookupResult(OPENCELLID_NAME, lookup, R.string.online_cell_found)
+        val cellsArray = org.json.JSONArray((lookup as? com.vincenthzr.locationspoofer.utils.OnlineLookup.Found)?.json ?: "[]")
         if (cellsArray.length() > 0) {
             val formattedCells = normalizeCellArrayForStorage(cellsArray)
             if (formattedCells.length() == 0) {

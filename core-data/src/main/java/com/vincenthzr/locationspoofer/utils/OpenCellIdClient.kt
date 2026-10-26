@@ -11,77 +11,74 @@ import java.util.Locale
 class OpenCellIdClient {
     private val client = OkHttpClient()
 
-    /** 验证 token 是否有效 */
-    suspend fun validateToken(token: String): Boolean = withContext(Dispatchers.IO) {
-        if (token.isBlank()) {
-            return@withContext false
-        }
-        return@withContext try {
-            val url =
-                "https://opencellid.org/cell/getInArea?key=$token&BBOX=0.0,0.0,0.0,0.0&format=json"
-            val request = Request.Builder()
-                .url(url)
-                .build()
-            val response = client.newCall(request).execute()
-            if (response.isSuccessful) {
-                val body = response.body?.string() ?: return@withContext false
-                val json = JSONObject(body)
-                if (json.has("error")) {
-                    // code 1 表示“未找到基站”，这实际上验证了密钥存在并且有效。
-                    // code 2 表示“API Key not known”或其他代码指示密钥无效。
-                    json.optInt("code") == 1
-                } else {
-                    true
+    private companion object {
+        // OpenCellID 接口的错误码：1 找不到基站；2 / 4 Key 不存在或格式不对；7 今日次数已用完
+        const val ERROR_NO_CELLS = 1
+        val INVALID_KEY_CODES = setOf(2, 4)
+        const val ERROR_RATE_LIMITED = 7
+    }
+
+    /** 检测 Token：查海上一个没有基站的小区域，Key 有效时回空列表，无效时回 401。BBOX 四个 0 会被当成错误请求（400） */
+    suspend fun validateToken(token: String): TokenCheck = withContext(Dispatchers.IO) {
+        if (token.isBlank()) return@withContext TokenCheck.BAD_FORMAT
+        try {
+            val url = "https://opencellid.org/cell/getInArea?key=${token.trim()}&BBOX=0.0,0.0,0.001,0.001&format=json"
+            client.newCall(Request.Builder().url(url).build()).execute().use { response ->
+                if (response.code == 401 || response.code == 403) return@withContext TokenCheck.INVALID
+                if (!response.isSuccessful) return@withContext TokenCheck.NETWORK_ERROR
+                val json = JSONObject(response.body?.string().orEmpty())
+                when {
+                    !json.has("error") -> TokenCheck.VALID
+                    json.optInt("code") == ERROR_NO_CELLS || json.optInt("code") == ERROR_RATE_LIMITED -> TokenCheck.VALID
+                    json.optInt("code") in INVALID_KEY_CODES -> TokenCheck.INVALID
+                    else -> TokenCheck.NETWORK_ERROR
                 }
-            } else {
-                false
             }
         } catch (e: Exception) {
-            false
+            TokenCheck.NETWORK_ERROR
         }
     }
 
-    /** 根据经纬度获取基站数据，无数据时返回空数组字符串"[]"，不生成假数据 */
-    suspend fun fetchCellData(lat: Double, lng: Double, token: String): String =
+    /** 查询 (lat, lng)（WGS-84）附近的基站，由近到远扩大范围，查到为止；查不到就是查不到，不编造数据 */
+    suspend fun fetchCellData(lat: Double, lng: Double, token: String): OnlineLookup =
         withContext(Dispatchers.IO) {
-            if (token.isBlank()) {
-                return@withContext "[]"
-            }
-
-            val searchBoxes = buildSearchBoxes(lat, lng)
-
+            if (token.isBlank()) return@withContext OnlineLookup.Unauthorized
+            var lastFailure: OnlineLookup? = null
             try {
-                for (box in searchBoxes) {
-                    val url =
-                        "https://opencellid.org/cell/getInArea?key=$token&BBOX=${box.latMin},${box.lonMin},${box.latMax},${box.lonMax}&format=json&limit=20"
-                    val request = Request.Builder()
-                        .url(url)
-                        .build()
-
-                    val response = client.newCall(request).execute()
-                    val code = response.code
-                    if (response.isSuccessful) {
-                        val body = response.body?.string()
-                        if (body == null) {
-                            continue
+                for (box in buildSearchBoxes(lat, lng)) {
+                    val url = "https://opencellid.org/cell/getInArea?key=${token.trim()}" +
+                        "&BBOX=${box.latMin},${box.lonMin},${box.latMax},${box.lonMax}&format=json&limit=20"
+                    val result = client.newCall(Request.Builder().url(url).build()).execute().use { response ->
+                        when {
+                            response.code == 401 || response.code == 403 -> return@use OnlineLookup.Unauthorized
+                            response.code == 429 -> return@use OnlineLookup.Failed(OnlineLookup.FailReason.RATE_LIMITED)
+                            !response.isSuccessful -> return@use OnlineLookup.Failed(OnlineLookup.FailReason.SERVER_ERROR, response.code)
                         }
-                        val jsonObject = JSONObject(body)
-                        val cells = jsonObject.optJSONArray("cells")
-                        if (cells == null || cells.length() == 0) {
-                            continue
+                        val json = JSONObject(response.body?.string().orEmpty())
+                        if (json.has("error")) {
+                            return@use when (json.optInt("code")) {
+                                ERROR_NO_CELLS -> OnlineLookup.NoData
+                                in INVALID_KEY_CODES -> OnlineLookup.Unauthorized
+                                ERROR_RATE_LIMITED -> OnlineLookup.Failed(OnlineLookup.FailReason.RATE_LIMITED)
+                                else -> OnlineLookup.Failed(OnlineLookup.FailReason.SERVER_ERROR)
+                            }
                         }
-                        val normalizedCells = normalizeOpenCellIdCells(cells)
-                        if (normalizedCells.length() == 0) {
-                            continue
+                        val cells = normalizeOpenCellIdCells(json.optJSONArray("cells") ?: JSONArray())
+                        if (cells.length() == 0) OnlineLookup.NoData else OnlineLookup.Found(cells.toString(), cells.length())
+                    }
+                    when (result) {
+                        is OnlineLookup.Found, OnlineLookup.Unauthorized -> return@withContext result
+                        is OnlineLookup.Failed -> {
+                            // 次数用完再试更大范围也没用
+                            if (result.reason == OnlineLookup.FailReason.RATE_LIMITED) return@withContext result
+                            lastFailure = result
                         }
-                        return@withContext normalizedCells.toString()
-                    } else {
-                        // 请求未成功，尝试下一个半径
+                        OnlineLookup.NoData -> Unit
                     }
                 }
-                return@withContext "[]"
+                lastFailure ?: OnlineLookup.NoData
             } catch (e: Exception) {
-                return@withContext "[]"
+                OnlineLookup.Failed(OnlineLookup.FailReason.NETWORK)
             }
         }
 

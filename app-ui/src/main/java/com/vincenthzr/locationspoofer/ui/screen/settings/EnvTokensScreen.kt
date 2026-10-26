@@ -1,6 +1,5 @@
 package com.vincenthzr.locationspoofer.ui.screen.settings
 
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,6 +37,7 @@ import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.setOpencellidApiToken
+import com.vincenthzr.locationspoofer.viewmodel.checkEnvTokens
 import com.vincenthzr.locationspoofer.viewmodel.setWigleApiToken
 import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 
@@ -51,6 +51,8 @@ fun EnvTokensScreen(
     val context = LocalContext.current
     var localWigleToken by remember(uiState.wigleToken) { mutableStateOf(uiState.wigleToken) }
     var localOpencellidToken by remember(uiState.opencellidToken) { mutableStateOf(uiState.opencellidToken) }
+    // 保存后的联网检测结果，显示在保存按钮下面（Toast 最多两行，放不下两个数据源的结果）
+    var tokenCheckResult by remember { mutableStateOf<String?>(null) }
 
     BackHandler(onBack = onClose)
 
@@ -180,13 +182,13 @@ fun EnvTokensScreen(
 
                     Button(
                         onClick = {
-                            viewModel.setWigleApiToken(localWigleToken)
-                            viewModel.setOpencellidApiToken(localOpencellidToken)
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.restart_required_hint),
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            // 保存后立即联网检测，告诉用户 Token 能不能用（查询时随时读取，不用重启）
+                            viewModel.setWigleApiToken(localWigleToken.trim())
+                            viewModel.setOpencellidApiToken(localOpencellidToken.trim())
+                            tokenCheckResult = context.getString(R.string.token_checking)
+                            viewModel.checkEnvTokens(localWigleToken, localOpencellidToken) { result ->
+                                tokenCheckResult = result
+                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -198,6 +200,18 @@ fun EnvTokensScreen(
                             stringResource(R.string.save),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    tokenCheckResult?.let { result ->
+                        Text(
+                            text = result,
+                            fontSize = 13.sp,
+                            lineHeight = 19.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 4.dp)
                         )
                     }
 
