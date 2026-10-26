@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -132,61 +133,59 @@ fun InfoTab(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
             contentPadding = PaddingValues(bottom = tabBarHeight + 24.dp),
-            // 内容不满一屏时整体垂直居中，超出一屏时照常滚动
-            verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // 顶部软件品牌：图标在左，名称和简介在右，整排水平居中
+            // 顶部软件品牌：图标在上，名称和简介在下，居中
             item {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .statusBarsPadding()
-                        .padding(start = 6.dp, end = 6.dp, top = 12.dp, bottom = 8.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(top = 24.dp, bottom = 10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // 软件图标：自己画一块不透明的白色圆角底再放定位准星。
                     // 不能直接用 getApplicationIcon()——系统返回的自适应图标是按启动器遮罩（Pixel 上是圆形）裁过的，
                     // 四个角透明，圆角矩形的阴影会从角里透出来，看起来就是一圈黑边。
                     Box(
                         modifier = Modifier
-                            .size(64.dp)
+                            .size(72.dp)
                             .shadow(
                                 elevation = 6.dp,
-                                shape = RoundedCornerShape(16.dp),
+                                shape = RoundedCornerShape(18.dp),
                                 clip = false
                             )
-                            .clip(RoundedCornerShape(16.dp))
+                            .clip(RoundedCornerShape(18.dp))
                             .background(Color.White),
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
                             painter = painterResource(android.R.drawable.ic_menu_mylocation),
                             contentDescription = null,
-                            modifier = Modifier.size(42.dp)
+                            modifier = Modifier.size(46.dp)
                         )
                     }
 
-                    Spacer(Modifier.width(16.dp))
+                    Spacer(Modifier.height(14.dp))
 
-                    Column(modifier = Modifier.weight(1f, fill = false)) {
-                        // 软件名称
-                        Text(
-                            text = stringResource(R.string.app_name),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
+                    // 软件名称
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
 
-                        Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(6.dp))
 
-                        // 软件简介介绍
-                        Text(
-                            text = stringResource(R.string.app_slogan),
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f)
-                        )
-                    }
+                    // 软件简介介绍
+                    Text(
+                        text = stringResource(R.string.app_slogan),
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    )
                 }
             }
 
@@ -200,120 +199,130 @@ fun InfoTab(
                 )
             }
 
-            // 2. 设置聚合卡片：原来的 6 个"软件配置"区块拆开后，各自独立成页，
-            // 这里收进一个紧凑列表，避免变成 6 个各自占一屏高度的大卡片。
+            // 2. 各项设置：和"功能"页一样一项一张卡片
             item {
-                MiuixCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    cornerRadius = 18.dp,
-                    insideMargin = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
-                ) {
-                    Column {
-                        SettingsEntryRow(
-                            icon = Icons.Rounded.Language,
-                            tint = AccentBlue,
-                            title = stringResource(R.string.select_language),
-                            previewChip = currentLangName,
-                            onClick = onNavigateToLanguage
-                        )
-                        SettingsEntryDivider()
-                        SettingsEntryRow(
-                            icon = Icons.Rounded.Map,
-                            tint = AccentGreen,
-                            title = stringResource(R.string.map_config),
-                            previewChip = currentEngineName,
-                            onClick = onNavigateToMapEngine
-                        )
-                        SettingsEntryDivider()
-                        SettingsEntryRow(
-                            icon = Icons.AutoMirrored.Rounded.DirectionsWalk,
-                            tint = AccentOrange,
-                            title = stringResource(R.string.motion_realism_title),
-                            previewChip = currentRealismLevelName,
-                            onClick = onNavigateToMotionRealism
-                        )
-                        SettingsEntryDivider()
-                        // 本机适配状态 + 厂商适配方案（仅全局方案可选），完整进度在它的二级页面
-                        SettingsEntryRow(
-                            icon = Icons.Rounded.Devices,
-                            tint = AccentGreen,
-                            title = stringResource(R.string.system_adaptation_title),
-                            previewChip = adaptationStatusChip,
-                            onClick = onNavigateToSystemAdaptation
-                        )
-                        SettingsEntryDivider()
-                        SettingsEntryRow(
-                            icon = Icons.Rounded.VpnKey,
-                            tint = AccentBlue,
-                            title = stringResource(R.string.env_datasource_tokens_title),
-                            onClick = onNavigateToEnvTokens
-                        )
-                    }
-                }
+                InfoEntryCard(
+                    icon = Icons.Rounded.Language,
+                    tint = AccentBlue,
+                    title = stringResource(R.string.select_language),
+                    description = stringResource(R.string.switch_language_desc),
+                    previewChip = currentLangName,
+                    isDark = isDark,
+                    onClick = onNavigateToLanguage
+                )
+            }
+            item {
+                InfoEntryCard(
+                    icon = Icons.Rounded.Map,
+                    tint = AccentGreen,
+                    title = stringResource(R.string.map_config),
+                    description = stringResource(R.string.map_config_desc),
+                    previewChip = currentEngineName,
+                    isDark = isDark,
+                    onClick = onNavigateToMapEngine
+                )
+            }
+            item {
+                InfoEntryCard(
+                    icon = Icons.AutoMirrored.Rounded.DirectionsWalk,
+                    tint = AccentOrange,
+                    title = stringResource(R.string.motion_realism_title),
+                    description = stringResource(R.string.motion_realism_desc),
+                    previewChip = currentRealismLevelName,
+                    isDark = isDark,
+                    onClick = onNavigateToMotionRealism
+                )
+            }
+            item {
+                // 本机适配状态、运行检测与 Hook 运行状态，完整进度在它的二级页面
+                InfoEntryCard(
+                    icon = Icons.Rounded.Devices,
+                    tint = AccentGreen,
+                    title = stringResource(R.string.system_adaptation_title),
+                    description = stringResource(R.string.system_adaptation_desc),
+                    previewChip = adaptationStatusChip,
+                    isDark = isDark,
+                    onClick = onNavigateToSystemAdaptation
+                )
+            }
+            item {
+                InfoEntryCard(
+                    icon = Icons.Rounded.VpnKey,
+                    tint = AccentBlue,
+                    title = stringResource(R.string.env_datasource_tokens_title),
+                    description = stringResource(R.string.env_datasource_tokens_desc),
+                    isDark = isDark,
+                    onClick = onNavigateToEnvTokens
+                )
             }
         }
     }
 }
 
-/** 设置聚合卡片里的单行入口：图标 + 标题 + 可选状态预览 chip + 箭头。 */
+/** 信息页的一项设置入口，样式和"功能"页的卡片一致：图标 + 标题与说明 + 可选状态 chip + 箭头 */
 @Composable
-private fun SettingsEntryRow(
+private fun InfoEntryCard(
     icon: ImageVector,
     tint: Color,
     title: String,
+    description: String,
+    isDark: Boolean,
     onClick: () -> Unit,
     previewChip: String? = null
 ) {
-    Row(
+    MiuixCard(
         modifier = Modifier
             .fillMaxWidth()
-            .noRippleClickable(onClick = onClick)
-            .padding(vertical = 11.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .noRippleClickable(onClick = onClick),
+        cornerRadius = 16.dp,
+        insideMargin = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(34.dp)
-                .clip(RoundedCornerShape(11.dp))
-                .background(tint.copy(alpha = 0.12f)),
-            contentAlignment = Alignment.Center
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
-        }
-        Spacer(Modifier.width(12.dp))
-        Text(
-            text = title,
-            fontSize = 14.5.sp,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f)
-        )
-        if (previewChip != null) {
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(tint.copy(alpha = 0.1f))
-                    .padding(horizontal = 7.dp, vertical = 2.5.dp)
+                    .size(38.dp)
+                    .clip(RoundedCornerShape(11.dp))
+                    .background(tint.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
             ) {
-                Text(text = previewChip, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = tint)
+                Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
+            }
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = description,
+                    fontSize = 12.sp,
+                    color = AppColors.textSecondary(isDark)
+                )
+            }
+            if (previewChip != null) {
+                Spacer(Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(tint.copy(alpha = 0.1f))
+                        .padding(horizontal = 7.dp, vertical = 2.5.dp)
+                ) {
+                    Text(text = previewChip, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = tint)
+                }
             }
             Spacer(Modifier.width(8.dp))
+            Icon(
+                Icons.Rounded.ChevronRight,
+                contentDescription = null,
+                tint = AppColors.textSecondary(isDark).copy(alpha = 0.7f),
+                modifier = Modifier.size(18.dp)
+            )
         }
-        Icon(
-            imageVector = Icons.Rounded.ChevronRight,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-            modifier = Modifier.size(18.dp)
-        )
     }
-}
-
-@Composable
-private fun SettingsEntryDivider() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(0.6.dp)
-            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
-    )
 }

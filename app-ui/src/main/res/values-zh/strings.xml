@@ -133,6 +133,8 @@
     <string name="ignore_this_version">忽略此版本</string>
     <string name="app_sha1">应用 SHA1 签名</string>
     <string name="map_config">地图配置</string>
+    <string name="system_adaptation_desc">本机适配情况、运行检测与 Hook 状态</string>
+    <string name="map_config_desc">地图引擎、API Key 与申请说明</string>
     <string name="custom_amap_key">高德地图 API Key</string>
     <string name="custom_amap_key_hint">输入您申请的高德地图 API Key</string>
     <string name="custom_baidu_key">百度地图 API Key</string>

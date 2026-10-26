@@ -129,6 +129,8 @@
     <string name="ignore_this_version">Ignore this version</string>
     <string name="app_sha1">App SHA1 Signature</string>
     <string name="map_config">Map Configuration</string>
+    <string name="system_adaptation_desc">Adaptation status, runtime checks and hook status</string>
+    <string name="map_config_desc">Map engine, API keys and how to get them</string>
     <string name="custom_amap_key">AMap API Key</string>
     <string name="custom_amap_key_hint">Enter your AMap API Key</string>
     <string name="custom_baidu_key">Baidu Map API Key</string>
