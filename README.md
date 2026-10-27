@@ -109,8 +109,12 @@
 * **Wi-Fi 与基站全接口模拟**：
   * 拦截 `WifiManager.getScanResults()`、`getConnectionInfo()`、`getConfiguredNetworks()`、`getDhcpInfo()`；
   * 拦截 `TelephonyManager.getAllCellInfo()`、`getCellLocation()`、`getNetworkOperator()`、`getServiceState()`、`getSignalStrength()`、`PhoneStateListener`、`TelephonyCallback`；
-  * 采用真实品牌合法 OUI（TP-Link、Huawei、Xiaomi、Cisco 等）生成非采集区的虚拟 MAC 地址。
-* **云端数据导入 (WiGLE & OpenCellID)**：支持配置 WiGLE API 与 OpenCellID API，在线拉取全球指定坐标周边的真实物理 Wi-Fi 与移动基站，自动入库缓存并离线复用。
+  * 根据 BSSID 前缀（OUI）识别 Wi-Fi 设备厂商（TP-Link、Huawei、Xiaomi、Cisco 等）。
+* **云端数据导入 (WiGLE & OpenCellID)**：在「信息 → 环境数据源 Token」填写 Token 后，可在线拉取指定坐标周边的真实 Wi-Fi 与基站，自动入库并离线复用。
+  * WiGLE：填账户页（Account → Show my token）的 **Encoded for use**，或「API 名:API Token」；只填 32 位的 API Token 无法认证；
+  * OpenCellID：填账户页的 API Key（`pk.` 开头）；
+  * 点击保存会联网检测并显示每个 Token 是否有效；
+  * 查询结果都会提示：查到几条、附近没有记录、Token 无效、次数用完或网络失败。查不到时不会编造数据。
 * **海量数据空间索引**：采用空间索引与分页机制，支持高效检索与存储数千条本地与云端无线电记录，保障界面与后台运行流畅。
 
 ### 5. 卫星矩阵与 NMEA 模拟
