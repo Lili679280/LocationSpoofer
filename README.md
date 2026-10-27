@@ -111,7 +111,7 @@
   * 拦截 `TelephonyManager.getAllCellInfo()`、`getCellLocation()`、`getNetworkOperator()`、`getServiceState()`、`getSignalStrength()`、`PhoneStateListener`、`TelephonyCallback`；
   * 根据 BSSID 前缀（OUI）识别 Wi-Fi 设备厂商（TP-Link、Huawei、Xiaomi、Cisco 等）。
 * **云端数据导入 (WiGLE & OpenCellID)**：在「信息 → 环境数据源 Token」填写 Token 后，可在线拉取指定坐标周边的真实 Wi-Fi 与基站，自动入库并离线复用。
-  * WiGLE：填账户页（Account → Show my token）的 **Encoded for use**，或「API 名:API Token」；只填 32 位的 API Token 无法认证；
+  * WiGLE：填账户页（Account → Show my token）的 **Encoded for use**；单独的 API 名或 32 位 API Token 都无法认证；
   * OpenCellID：填账户页的 API Key（`pk.` 开头）；
   * 点击保存会联网检测并显示每个 Token 是否有效；
   * 查询结果都会提示：查到几条、附近没有记录、Token 无效、次数用完或网络失败。查不到时不会编造数据。

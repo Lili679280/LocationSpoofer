@@ -107,7 +107,7 @@ Real GPS receivers naturally output coordinates with Gaussian white noise caused
   * Hooks `TelephonyManager.getAllCellInfo()`, `getCellLocation()`, `getNetworkOperator()`, `getServiceState()`, `getSignalStrength()`, `PhoneStateListener`, `TelephonyCallback`;
   * Identifies Wi-Fi vendors (TP-Link, Huawei, Xiaomi, Cisco, etc.) from the BSSID prefix (OUI).
 * **Cloud WiGLE & OpenCellID Integration**: After entering tokens under "Info → Environment Data Source Tokens", pulls real Wi-Fi and cell tower records around a coordinate and stores them locally for offline replay.
-  * WiGLE: enter **Encoded for use** from your account page (Account → Show my token), or "API name:API token". The 32-character API token alone cannot authenticate;
+  * WiGLE: enter **Encoded for use** from your account page (Account → Show my token); the API name or the 32-character API token on its own cannot authenticate;
   * OpenCellID: enter the API key from your account page (starts with `pk.`);
   * Saving checks each token online and shows whether it is valid;
   * Every lookup reports its result: how many records were found, none nearby, token rejected, quota used up, or network error. Nothing is made up when no data is found.

@@ -10,17 +10,17 @@ class WigleClientTest {
 
     @Test
     fun `accepts the encoded value from the account page`() {
-        assertEquals(encoded, WigleClient.encodeToken("  $encoded "))
+        assertEquals(encoded, WigleClient.authToken("  $encoded "))
     }
 
     @Test
-    fun `encodes api name and token`() {
-        assertEquals(encoded, WigleClient.encodeToken("AIDabc123:0123456789abcdef"))
+    fun `rejects an unencoded name and token`() {
+        assertNull(WigleClient.authToken("AIDabc123:0123456789abcdef"))
     }
 
     @Test
     fun `rejects a bare api token and empty input`() {
-        assertNull(WigleClient.encodeToken("0123456789abcdef0123456789abcdef"))
-        assertNull(WigleClient.encodeToken("   "))
+        assertNull(WigleClient.authToken("0123456789abcdef0123456789abcdef"))
+        assertNull(WigleClient.authToken("   "))
     }
 }

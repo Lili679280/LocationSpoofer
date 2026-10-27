@@ -14,15 +14,12 @@ class WigleClient {
         private val NAME_AND_TOKEN = Regex("^[^:\\s]+:[^:\\s]+$")
 
         /**
-         * WiGLE 的 Basic 认证值。接受两种填法：账户页的 "Encoded for use"（Base64），或 "API 名:API Token"（这里自动编码）。
-         * 只填了 32 位的 API Token、没有 API 名时无法认证，返回 null。
+         * WiGLE 的 Basic 认证值：只接受账户页的 "Encoded for use"，即 "API 名:API Token" 的 Base64。
+         * 填了别的（只有 32 位的 API Token、没编码的 "名:Token" 等）返回 null。
          */
-        fun encodeToken(input: String): String? {
+        fun authToken(input: String): String? {
             val value = input.trim()
             if (value.isEmpty()) return null
-            if (NAME_AND_TOKEN.matches(value)) {
-                return java.util.Base64.getEncoder().encodeToString(value.toByteArray(Charsets.UTF_8))
-            }
             val decoded = runCatching { String(java.util.Base64.getDecoder().decode(value), Charsets.UTF_8) }.getOrNull()
             return value.takeIf { decoded != null && NAME_AND_TOKEN.matches(decoded) }
         }
@@ -30,7 +27,7 @@ class WigleClient {
 
     /** 检测 Token（调用 /profile/user 接口） */
     suspend fun validateToken(token: String): TokenCheck = withContext(Dispatchers.IO) {
-        val auth = encodeToken(token) ?: return@withContext TokenCheck.BAD_FORMAT
+        val auth = authToken(token) ?: return@withContext TokenCheck.BAD_FORMAT
         try {
             val request = Request.Builder()
                 .url("https://api.wigle.net/api/v2/profile/user")
@@ -53,7 +50,7 @@ class WigleClient {
     /** 查询 (lat, lng) 附近约 ±200 米内的 Wi-Fi（WGS-84），最多 10 个 */
     suspend fun fetchWifiData(lat: Double, lng: Double, token: String): OnlineLookup =
         withContext(Dispatchers.IO) {
-            val auth = encodeToken(token) ?: return@withContext OnlineLookup.Unauthorized
+            val auth = authToken(token) ?: return@withContext OnlineLookup.Unauthorized
 
             val url = "https://api.wigle.net/api/v2/network/search?" +
                 "latrange1=${lat - 0.002}&latrange2=${lat + 0.002}&longrange1=${lng - 0.002}&longrange2=${lng + 0.002}"

@@ -207,7 +207,7 @@
     <string name="no_saved_routes">No saved routes</string>
     <string name="route_nodes_count">%d points</string>
     <string name="custom_wigle_token">WiGLE API Token</string>
-    <string name="custom_wigle_token_hint">“Encoded for use” from your account page, or “API name:API token”</string>
+    <string name="custom_wigle_token_hint">“Encoded for use” from your WiGLE account page</string>
     <string name="custom_opencellid_token">OpenCellID API Token</string>
     <string name="custom_opencellid_token_hint">Enter your OpenCellID token...</string>
     <string name="token_checking">Checking tokens…</string>
@@ -216,7 +216,7 @@
     <string name="token_status_invalid">invalid</string>
     <string name="token_status_empty">not set</string>
     <string name="token_status_network">server unreachable, not checked</string>
-    <string name="token_status_wigle_format">wrong format; enter “Encoded for use” from your account page, or “API name:API token”</string>
+    <string name="token_status_wigle_format">wrong format; enter “Encoded for use” under Show my token on your account page</string>
     <string name="online_wifi_found">%1$s: got %2$d nearby Wi-Fi networks</string>
     <string name="online_cell_found">%1$s: got %2$d nearby cell towers</string>
     <string name="online_no_data">%1$s: no records near here</string>
