@@ -10,7 +10,7 @@ class SpoofingServiceControllerImpl : SpoofingServiceController {
 
     override fun startForeground(context: Context, lat: Double, lng: Double, mockMode: Boolean) {
         // 后台调用（开机恢复、Tasker、停止后交还真实位置）在 Android 12+ 可能不允许启动前台服务，
-        // 这时只是没有通知，模拟配置照常生效，不能让异常把进程带崩
+        // Root 模式只是没有通知，模拟配置照常生效，不能让异常把进程带崩；免 Root 模式没有服务就没法模拟
         try {
             context.startForegroundService(
                 Intent(context, SpoofingService::class.java).apply {
@@ -20,8 +20,9 @@ class SpoofingServiceControllerImpl : SpoofingServiceController {
                     putExtra(SpoofingService.EXTRA_MOCK_MODE, mockMode)
                 }
             )
-        } catch (e: IllegalStateException) {
+        } catch (e: RuntimeException) {
             e.printStackTrace()
+            if (mockMode) abortMockMode(context, R.string.mock_start_background_failed)
         }
     }
 

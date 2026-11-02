@@ -8,11 +8,11 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.location.LocationManager
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
+import com.vincenthzr.locationspoofer.data.repository.SettingsRepository
 import com.vincenthzr.locationspoofer.data.state.NotificationActions
 import com.vincenthzr.locationspoofer.utils.ConfigManager
 import kotlinx.coroutines.CoroutineScope
@@ -23,12 +23,12 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class SpoofingService : Service() {
 
-    private lateinit var locationManager: LocationManager
     private var wakeLock: PowerManager.WakeLock? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val configManager: ConfigManager by inject()
@@ -54,7 +54,6 @@ class SpoofingService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         createNotificationChannel()
     }
 
@@ -63,9 +62,12 @@ class SpoofingService : Service() {
             ACTION_START -> {
                 val lat = intent.getDoubleExtra(EXTRA_LAT, 0.0)
                 val lng = intent.getDoubleExtra(EXTRA_LNG, 0.0)
+                val mockMode = intent.getBooleanExtra(EXTRA_MOCK_MODE, false)
                 startSpoofing(lat, lng)
-                if (isRunning) {
-                    if (intent.getBooleanExtra(EXTRA_MOCK_MODE, false)) startMockPushing() else stopMockPushing()
+                when {
+                    isRunning && mockMode -> startMockPushing()
+                    isRunning -> stopMockPushing()
+                    mockMode -> abortMockMode(this, R.string.mock_start_background_failed)
                 }
             }
 
@@ -168,23 +170,25 @@ class SpoofingService : Service() {
     private fun startMockPushing() {
         if (mockJob?.isActive == true) return
         val pusher = MockLocationPusher(this)
+        // 在主线程同步登记：放进后台任务的话，刚开始就停止时撤销可能跑在登记前面，定位源残留会一直挡住真实定位
+        try {
+            pusher.start()
+        } catch (e: SecurityException) {
+            android.util.Log.e("SpoofingService", "Mock location not allowed", e)
+            abortMockMode(this, R.string.mock_location_not_allowed)
+            return
+        }
         mockPusher = pusher
         mockJob = serviceScope.launch {
             try {
-                pusher.start()
                 while (isActive) {
                     configManager.currentConfig()?.let(pusher::push)
                     delay(MOCK_PUSH_INTERVAL_MS)
                 }
             } catch (e: SecurityException) {
-                // 没被选为"模拟位置信息应用"（或中途被取消）：提示后按通知栏"停止"的流程让界面同步停止
+                // 中途在开发者选项里被取消
                 android.util.Log.e("SpoofingService", "Mock location not allowed", e)
-                withContext(Dispatchers.Main) {
-                    android.widget.Toast.makeText(
-                        this@SpoofingService, R.string.mock_location_not_allowed, android.widget.Toast.LENGTH_LONG
-                    ).show()
-                    sendBroadcast(Intent(NotificationActions.STOP).setPackage(packageName))
-                }
+                abortMockMode(this@SpoofingService, R.string.mock_location_not_allowed)
             }
         }
     }
@@ -200,27 +204,8 @@ class SpoofingService : Service() {
         isRunning = false
         stopMockPushing()
         releaseWakeLock()
-        cleanupLegacyTestProviders()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
-    }
-
-    private fun cleanupLegacyTestProviders() {
-        val providers =
-            mutableListOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            providers.add(LocationManager.FUSED_PROVIDER)
-        }
-        for (provider in providers) {
-            try {
-                locationManager.setTestProviderEnabled(provider, false)
-            } catch (_: Throwable) {
-            }
-            try {
-                locationManager.removeTestProvider(provider)
-            } catch (_: Throwable) {
-            }
-        }
     }
 
     private fun createNotificationChannel() {
@@ -255,8 +240,24 @@ class SpoofingService : Service() {
         releaseWakeLock()
         stopMockPushing()
         serviceScope.cancel()
-        cleanupLegacyTestProviders()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+}
+
+/**
+ * 免 Root 模式开始不了或中途失去权限：提示后按通知栏"停止"的流程收尾，界面和状态一起恢复。
+ * Root 模式不需要：服务只负责通知，Hook 不受影响；而这里没有服务就没人推送位置，不能一直显示"模拟中"。
+ * 停止后的"交还真实位置"失败不用处理：这时已经记成没在模拟，它到时间会自己结束，用户也不需要知道。
+ */
+internal fun abortMockMode(context: Context, message: Int) {
+    if (!MockModeAbort.settings.isSpoofingActive) return
+    android.os.Handler(android.os.Looper.getMainLooper()).post {
+        android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
+    }
+    context.sendBroadcast(Intent(NotificationActions.STOP).setPackage(context.packageName))
+}
+
+private object MockModeAbort : KoinComponent {
+    val settings: SettingsRepository by inject()
 }

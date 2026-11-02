@@ -97,7 +97,6 @@ data class AppState(
     val isInitializing: Boolean = true,
     val isLanguageSet: Boolean = true, // 默认为 true，以避免在不需要时发生闪烁
     val currentLanguage: String = "",
-    val hasRootAccess: Boolean = false,
     val debugDumpSystemServices: Boolean = false,
     val realismLevel: Int = MotionRealism.DEFAULT_LEVEL_ID,
     val speedFluctuationPct: Int = MotionRealism.DEFAULT_SPEED_FLUCTUATION_PCT,
@@ -112,7 +111,6 @@ data class AppState(
     val isRestartingHookedApps: Boolean = false,
     /** 非空即触发"确认重启应用"弹窗；内容来自 lsposedManager.getHookedApps() */
     val hookedAppsToRestart: List<AppInfoItem>? = null,
-    val isLSPosedActive: Boolean = false,
     /** 免 Root 模式（系统模拟位置），见 SpoofMode */
     val isMockMode: Boolean = true,
     val forceMockMode: Boolean = false,

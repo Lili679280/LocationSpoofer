@@ -143,11 +143,9 @@ class MockLocationPusher(private val context: Context) {
         this.accuracy = accuracy
         this.time = time
         elapsedRealtimeNanos = SystemClock.elapsedRealtimeNanos()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            verticalAccuracyMeters = accuracy * 1.5f
-            speedAccuracyMetersPerSecond = 0.5f
-            bearingAccuracyDegrees = if (speed > 0f) 10f else 180f
-        }
+        verticalAccuracyMeters = accuracy * 1.5f
+        speedAccuracyMetersPerSecond = 0.5f
+        bearingAccuracyDegrees = if (speed > 0f) 10f else 180f
         extras = Bundle().apply { putInt("satellites", satellites) }
     }
 

@@ -345,7 +345,7 @@
     <string name="run_mode_current_mock">Current: No-root mode</string>
     <string name="run_mode_reason_root">The LSPosed module is active. Spoofing works through hooks and every feature is available.</string>
     <string name="run_mode_reason_forced">No-root mode was chosen manually. Spoofing works through the system mock location API.</string>
-    <string name="run_mode_reason_auto">The LSPosed module is not active, so no-root mode is used automatically. Spoofing works through the system mock location API.</string>
+    <string name="run_mode_reason_auto">The LSPosed module is not active, so no-root mode is used. If this phone has root, enable this module in LSPosed, check System Framework, Phone and Bluetooth in its scope and reboot to get Root mode with every feature.</string>
     <string name="run_mode_force_title">Always use no-root mode</string>
     <string name="run_mode_force_desc">Use system mock location even when LSPosed is active</string>
     <string name="run_mode_stop_first">Stop spoofing before switching modes</string>
@@ -362,13 +362,7 @@
     <string name="spoofing_options_desc_mock">No-root mode only spoofs coordinates and altitude; Wi-Fi, cell and other environment data need Root mode.</string>
     <string name="features_mock_mode_notice">No-root mode: per-app coordinate systems, per-app spoofing and Wi-Fi, cell and Bluetooth spoofing need Root mode; collecting and managing data still work</string>
     <string name="map_layers">Map Layers</string>
-    <string name="select_data_source">Select Data Source</string>
-    <string name="select_data_source_desc">Set search source for locations and environment on Location tab</string>
-    <string name="network_online_search">Online Network Search</string>
-    <string name="network_online_search_desc">Search online map POIs, places, and coordinates</string>
     <string name="local_collected_datasource">Local Collected Data</string>
-    <string name="local_collected_datasource_desc">Prioritize local collected database (Wi-Fi / Cell signatures)</string>
-    <string name="import_external_datasource">Import external data source (JSON)...</string>
     <string name="layers_and_engine_title">Layers &amp; Map Engine</string>
     <string name="layers_and_engine_desc">Select map rendering style and underlying engine</string>
     <string name="map_engine_service">Map Engine Service</string>

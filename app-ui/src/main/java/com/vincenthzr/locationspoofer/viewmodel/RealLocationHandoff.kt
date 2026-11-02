@@ -87,16 +87,18 @@ class RealLocationHandoff(
      */
     @SuppressLint("MissingPermission")
     private fun keepGmsListening(): () -> Unit {
-        val client = LocationServices.getFusedLocationProviderClient(context)
         val callback = object : LocationCallback() {}
-        runCatching {
-            client.requestLocationUpdates(
-                LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, GMS_LISTEN_INTERVAL_MS).build(),
-                callback,
-                android.os.Looper.getMainLooper()
-            )
-        }
-        return { runCatching { client.removeLocationUpdates(callback) } }
+        // 没有谷歌服务的手机上这里会失败，不影响交还本身
+        val client = runCatching {
+            LocationServices.getFusedLocationProviderClient(context).also {
+                it.requestLocationUpdates(
+                    LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, GMS_LISTEN_INTERVAL_MS).build(),
+                    callback,
+                    android.os.Looper.getMainLooper()
+                )
+            }
+        }.getOrNull()
+        return { runCatching { client?.removeLocationUpdates(callback) } }
     }
 
     /** 交还进行中时立即结束（通知栏又点了一次停止）：不再等那几秒，直接停掉 */

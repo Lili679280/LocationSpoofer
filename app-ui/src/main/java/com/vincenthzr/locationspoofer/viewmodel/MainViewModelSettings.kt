@@ -48,7 +48,7 @@ internal fun MainViewModel.initialize() {
     }
     viewModelScope.launch(Dispatchers.IO) {
         mergeLegacyRecords()
-        val root = locationRepository.recoverAfterBoot(context)
+        locationRepository.recoverAfterBoot(context)
         // 进程重启后恢复的模拟是定点状态，让运动控制器（悬浮摇杆）接上这个位置
         motionController.syncFromSpoofingStateIfIdle()
 
@@ -62,7 +62,6 @@ internal fun MainViewModel.initialize() {
         _uiState.update {
             it.copy(
                 isInitializing = false,
-                hasRootAccess = root,
                 isSpoofingActive = settingsRepository.isSpoofingActive,
                 latitudeInput = restoredPosition?.first ?: it.latitudeInput,
                 longitudeInput = restoredPosition?.second ?: it.longitudeInput,
@@ -138,7 +137,6 @@ internal fun MainViewModel.initialize() {
         XposedModuleStatus.isModuleActive.collect { active ->
             _uiState.update {
                 it.copy(
-                    isLSPosedActive = active,
                     isMockMode = locationRepository.isMockMode(),
                     hookedApps = if (active) lsposedManager.getHookedApps(context) else emptyList()
                 )

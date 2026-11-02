@@ -344,7 +344,7 @@
     <string name="run_mode_current_mock">当前：免 Root 模式</string>
     <string name="run_mode_reason_root">LSPosed 模块已生效，通过 Hook 模拟，所有功能都可用。</string>
     <string name="run_mode_reason_forced">已手动选择免 Root 模式，通过系统的「模拟位置」接口模拟。</string>
-    <string name="run_mode_reason_auto">LSPosed 模块未生效，自动使用免 Root 模式，通过系统的「模拟位置」接口模拟。</string>
+    <string name="run_mode_reason_auto">LSPosed 模块未生效，自动使用免 Root 模式。手机有 Root 的话，在 LSPosed 里启用本模块，作用域勾选系统框架、电话、蓝牙，重启后就是 Root 模式，所有功能都可用。</string>
     <string name="run_mode_force_title">强制使用免 Root 模式</string>
     <string name="run_mode_force_desc">LSPosed 生效时也使用系统模拟位置</string>
     <string name="run_mode_stop_first">请先停止模拟再切换模式</string>
@@ -361,13 +361,7 @@
     <string name="spoofing_options_desc_mock">免 Root 模式只模拟经纬度和海拔；Wi-Fi、基站等环境数据需要 Root 模式。</string>
     <string name="features_mock_mode_notice">免 Root 模式：配置应用坐标系、按应用模拟，以及 Wi-Fi、基站、蓝牙模拟需要 Root 模式；采集和管理数据照常可用</string>
     <string name="map_layers">地图图层</string>
-    <string name="select_data_source">选择数据源</string>
-    <string name="select_data_source_desc">设置定位页面的地点与环境检索来源</string>
-    <string name="network_online_search">网络在线检索</string>
-    <string name="network_online_search_desc">在线检索地图 POI、地点与地理坐标</string>
     <string name="local_collected_datasource">本地采集数据源</string>
-    <string name="local_collected_datasource_desc">优先检索本地采集的环境数据库（Wi-Fi / 基站指纹）</string>
-    <string name="import_external_datasource">导入外部本地数据源 (JSON)...</string>
     <string name="layers_and_engine_title">图层与引擎设置</string>
     <string name="layers_and_engine_desc">选择地图渲染样式与底层地图引擎</string>
     <string name="map_engine_service">地图引擎服务</string>

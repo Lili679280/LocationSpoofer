@@ -118,7 +118,8 @@ class LocationRepository(
         // android:mock_location 重置为 default（用于避免被系统安全中心一直记录为"模拟中"），
         // 如果这里不重新授予，第二次开始模拟时该 AppOps 就会一直停留在 default，
         // 导致"模拟一次后关闭再开就再也无法模拟"。
-        rootManager.grantMockLocation()
+        // 免 Root 模式这个权限由用户在开发者选项里选，不去碰 su
+        if (!isMockMode()) rootManager.grantMockLocation()
 
         val alt = settingsManager.altitude.toDoubleOrNull() ?: 0.0
         val satCount = settingsManager.satelliteCount.toIntOrNull() ?: 20
@@ -163,31 +164,17 @@ class LocationRepository(
         SpoofingState.isRouteMode = false
         configManager.saveConfig(0.0, 0.0, false)
 
-        // 1. 同步在当前进程清理所有可能残留的 TestProvider
+        // 1. 撤销免 Root 模式登记的测试定位源。放在这里而不只靠服务：进程被杀后服务不在了，定位源还会残留
         val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
         if (lm != null) {
-            try {
-                lm.setTestProviderEnabled(LocationManager.GPS_PROVIDER, false)
-            } catch (e: Throwable) {
+            val providers = buildList {
+                add(LocationManager.GPS_PROVIDER)
+                add(LocationManager.NETWORK_PROVIDER)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) add(LocationManager.FUSED_PROVIDER)
             }
-            try {
-                lm.removeTestProvider(LocationManager.GPS_PROVIDER)
-            } catch (e: Throwable) {
-            }
-            try {
-                lm.setTestProviderEnabled(LocationManager.NETWORK_PROVIDER, false)
-            } catch (e: Throwable) {
-            }
-            try {
-                lm.removeTestProvider(LocationManager.NETWORK_PROVIDER)
-            } catch (e: Throwable) {
-            }
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    lm.setTestProviderEnabled(LocationManager.FUSED_PROVIDER, false)
-                    lm.removeTestProvider(LocationManager.FUSED_PROVIDER)
-                }
-            } catch (e: Throwable) {
+            for (provider in providers) {
+                runCatching { lm.setTestProviderEnabled(provider, false) }
+                runCatching { lm.removeTestProvider(provider) }
             }
         }
 
