@@ -22,5 +22,6 @@
     <string name="fj_saved_toast">路线已保存</string>
     <string name="spoofing_service_stop">停止模拟</string>
     <string name="mock_start_background_failed">免 Root 模式要打开软件才能开始模拟，这次没有启动</string>
+    <string name="mock_process_frozen">系统暂停过本软件，模拟位置中断了。请在系统电池设置里允许本软件后台高耗电</string>
     <string name="mock_location_not_allowed">免 Root 模式需要在开发者选项里把本软件选为「模拟位置信息应用」，模拟已停止</string>
 </resources>

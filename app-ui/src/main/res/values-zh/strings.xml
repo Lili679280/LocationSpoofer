@@ -126,7 +126,7 @@
     <string name="ignore_this_version">忽略此版本</string>
     <string name="app_sha1">应用 SHA1 签名</string>
     <string name="map_config">地图配置</string>
-    <string name="system_adaptation_desc">本机适配情况、运行检测与 Hook 状态</string>
+    <string name="system_adaptation_desc">本机适配情况与运行检测</string>
     <string name="map_config_desc">地图引擎、API Key 与申请说明</string>
     <string name="custom_amap_key">高德地图 API Key</string>
     <string name="custom_amap_key_hint">输入您申请的高德地图 API Key</string>
@@ -353,8 +353,14 @@
     <string name="mock_permission_missing">未选择</string>
     <string name="mock_permission_steps">1. 设置 → 关于手机，连续点「版本号」7 次，打开开发者选项\n2. 设置 → 系统 → 开发者选项 → 选择模拟位置信息应用 → 选择本软件</string>
     <string name="open_developer_options">打开开发者选项</string>
+    <string name="background_power_title">允许后台高耗电</string>
+    <string name="background_power_text">vivo 手机会暂停后台的软件，免 Root 模式几秒后就会回到真实位置。\n\n请点「去设置」，在列表里找到 LocationSpoofer，改成「允许后台高耗电」。</string>
+    <string name="background_power_check_desc">系统查不到这个开关的状态，请到列表里确认已允许本软件</string>
+    <string name="background_power_open">去设置</string>
+    <string name="background_power_later">稍后</string>
     <string name="run_mode_limits_title">免 Root 模式的限制</string>
-    <string name="run_mode_limits">• 系统会给模拟的位置加上「模拟」标记，钉钉、企业微信等检查这个标记的应用能识别出来\n• 开着 Wi-Fi 时，高德、百度等地图 SDK 可能用周围的 Wi-Fi 联网定位，闪回真实位置；建议关闭 Wi-Fi 和「WLAN 扫描」\n• 所有应用都会收到模拟位置，不能按应用选择\n• Wi-Fi、基站、蓝牙、卫星、计步模拟和应用坐标系需要 Root 模式</string>
+    <string name="run_mode_limits">• vivo 等手机会暂停后台的软件，模拟几秒后就回到真实位置：请在系统电池设置里允许本软件后台高耗电
+• 系统会给模拟的位置加上「模拟」标记，钉钉、企业微信等检查这个标记的应用能识别出来\n• 开着 Wi-Fi 时，高德、百度等地图 SDK 可能用周围的 Wi-Fi 联网定位，闪回真实位置；建议关闭 Wi-Fi 和「WLAN 扫描」\n• 所有应用都会收到模拟位置，不能按应用选择\n• Wi-Fi、基站、蓝牙、卫星、计步模拟和应用坐标系需要 Root 模式</string>
     <string name="mock_setup_dialog_title">需要设置模拟位置</string>
     <string name="mock_setup_dialog_text">免 Root 模式通过系统的模拟位置接口工作，需要先在开发者选项里把本软件选为「模拟位置信息应用」。</string>
     <string name="mock_mode_wifi_warning">Wi-Fi 已打开：免 Root 模式下可能闪回真实位置，建议关闭 Wi-Fi</string>

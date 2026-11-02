@@ -11,6 +11,7 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
+import android.os.SystemClock
 import androidx.core.app.NotificationCompat
 import com.vincenthzr.locationspoofer.data.repository.SettingsRepository
 import com.vincenthzr.locationspoofer.data.state.NotificationActions
@@ -44,6 +45,7 @@ class SpoofingService : Service() {
         const val EXTRA_LNG = "EXTRA_LNG"
         const val EXTRA_MOCK_MODE = "EXTRA_MOCK_MODE"
         private const val MOCK_PUSH_INTERVAL_MS = 1_000L
+        private const val MOCK_FROZEN_GAP_MS = 5_000L
         private const val NOTIFICATION_ID = 1001
         private const val CHANNEL_ID = "spoofing_status"
         private const val LEGACY_CHANNEL_ID = "SpoofingServiceChannel"
@@ -181,9 +183,20 @@ class SpoofingService : Service() {
         mockPusher = pusher
         mockJob = serviceScope.launch {
             try {
+                var lastPushAt = SystemClock.elapsedRealtime()
+                var warned = false
                 while (isActive) {
                     configManager.currentConfig()?.let(pusher::push)
                     delay(MOCK_PUSH_INTERVAL_MS)
+                    // vivo 等系统会把后台进程冻结，前台服务也一样：推送中断几秒后高德这类持续定位的 App 就回到真实位置
+                    val now = SystemClock.elapsedRealtime()
+                    if (!warned && now - lastPushAt > MOCK_FROZEN_GAP_MS) {
+                        warned = true
+                        android.os.Handler(android.os.Looper.getMainLooper()).post {
+                            android.widget.Toast.makeText(this@SpoofingService, R.string.mock_process_frozen, android.widget.Toast.LENGTH_LONG).show()
+                        }
+                    }
+                    lastPushAt = now
                 }
             } catch (e: SecurityException) {
                 // 中途在开发者选项里被取消

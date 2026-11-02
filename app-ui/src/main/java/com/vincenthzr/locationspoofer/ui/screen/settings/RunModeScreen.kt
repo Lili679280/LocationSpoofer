@@ -41,6 +41,7 @@ import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.utils.SpoofMode
+import com.vincenthzr.locationspoofer.utils.BackgroundPower
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.dismissMockSetupDialog
 import com.vincenthzr.locationspoofer.viewmodel.openDeveloperOptions
@@ -173,6 +174,43 @@ fun RunModeScreen(
                         }
                         Spacer(Modifier.width(12.dp))
                         Switch(checked = uiState.forceMockMode, onCheckedChange = { viewModel.setForceMockMode(it) })
+                    }
+                }
+
+                // vivo 的后台高耗电：没开的话免 Root 模式会被系统冻结
+                if (BackgroundPower.needsSetup) {
+                    val context = LocalContext.current
+                    MiuixCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 18.dp, insideMargin = PaddingValues(16.dp)) {
+                        Text(
+                            text = stringResource(R.string.background_power_title),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            text = stringResource(R.string.background_power_text),
+                            fontSize = 12.5.sp,
+                            lineHeight = 19.sp,
+                            color = AppColors.textSecondary(isDark)
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(42.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(AccentBlue)
+                                .noRippleClickable { BackgroundPower.openSettings(context) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(R.string.background_power_open),
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
                 }
 

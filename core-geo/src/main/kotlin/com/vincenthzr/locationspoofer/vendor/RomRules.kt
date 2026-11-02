@@ -24,6 +24,7 @@ object RomRules {
         "ro.build.version.sem",
         // vivo / iQOO
         "ro.vivo.os.version",
+        "ro.vivo.os.build.display.id",
         "ro.vivo.product.series",
         // 华为 / 荣耀
         "ro.build.version.emui",
@@ -69,7 +70,10 @@ object RomRules {
         RomFamily.COLOROS -> p.prop("ro.build.version.oplusrom").ifBlank { p.prop("ro.build.version.opporom") }
             .removePrefix("V")
         RomFamily.ONEUI -> formatOneUi(p.prop("ro.build.version.oneui"))
-        RomFamily.ORIGINOS_FUNTOUCH -> p.prop("ro.vivo.os.version")
+        // OriginOS 6 的 ro.vivo.os.version 是 16.0，用户看到的版本号在 display id 里（"OriginOS 6"）
+        RomFamily.ORIGINOS_FUNTOUCH -> p.prop("ro.vivo.os.build.display.id")
+            .takeIf { it.startsWith("OriginOS ") }?.removePrefix("OriginOS ")
+            ?: p.prop("ro.vivo.os.version")
         RomFamily.MAGICOS_EMUI -> p.prop("ro.build.version.magic").ifBlank { p.prop("ro.build.version.emui") }
         RomFamily.FLYME, RomFamily.AOSP -> ""
     }

@@ -12,23 +12,32 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Density
 import androidx.core.net.toUri
 import com.vincenthzr.locationspoofer.ui.screen.InitializingScreen
 import com.vincenthzr.locationspoofer.ui.screen.LanguageSelectionScreen
 import com.vincenthzr.locationspoofer.ui.theme.AppColorSchemeDark
 import com.vincenthzr.locationspoofer.ui.theme.AppColorSchemeLight
+import com.vincenthzr.locationspoofer.ui.R as UiR
+import com.vincenthzr.locationspoofer.utils.BackgroundPower
 import com.vincenthzr.locationspoofer.utils.LocaleUtils
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.getSavedLanguage
 import org.koin.androidx.viewmodel.ext.android.viewModel
+
+private const val KEY_BACKGROUND_POWER_OPENED = "background_power_opened"
+private const val STATE_BACKGROUND_POWER_DISMISSED = "background_power_dismissed"
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModel()
@@ -41,6 +50,7 @@ class MainActivity : ComponentActivity() {
             // 悬浮窗权限与运行时权限无关，被拒绝时也照样检查
             requestOverlayPermissionIfNeeded()
             if (locationGranted) requestIgnoreBatteryOptimizations()
+            permissionsRequested = true
         }
 
     private val backgroundLocationLauncher =
@@ -76,6 +86,8 @@ class MainActivity : ComponentActivity() {
         // 语言切换、旋转等导致的重建不重复跳转授权页，只在冷启动时检查一次
         overlayPromptHandled = savedInstanceState != null
         checkAndRequestPermissions()
+
+        backgroundPowerPromptDismissed = savedInstanceState?.getBoolean(STATE_BACKGROUND_POWER_DISMISSED) == true
 
         setContent {
             CompositionLocalProvider(
@@ -123,6 +135,7 @@ class MainActivity : ComponentActivity() {
                                     uiState = uiState,
                                     isDark = isDark
                                 )
+                                if (!uiState.isInitializing) BackgroundPowerPrompt()
                             }
                         }
                     }
@@ -157,7 +170,59 @@ class MainActivity : ComponentActivity() {
             checkBackgroundLocation()
             requestOverlayPermissionIfNeeded()
             requestIgnoreBatteryOptimizations()
+            permissionsRequested = true
         }
+    }
+
+    private var permissionsRequested = false
+    private var backgroundPowerPromptDismissed = false
+    private var showBackgroundPowerPrompt by mutableStateOf(false)
+
+    /**
+     * vivo 要允许后台高耗电，否则免 Root 模式会被冻结。系统权限弹窗和授权页都在上面时窗口没有焦点，
+     * 拿回焦点说明它们都结束了，这时才提示。查不到开关状态：每次启动都提示，点过"去设置"才不再提示
+     */
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (!hasFocus || !permissionsRequested || backgroundPowerPromptDismissed || !BackgroundPower.needsSetup) return
+        val prefs = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+        if (!prefs.getBoolean(KEY_BACKGROUND_POWER_OPENED, false)) showBackgroundPowerPrompt = true
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // 选语言、旋转屏幕导致的重建不算新的启动
+        outState.putBoolean(STATE_BACKGROUND_POWER_DISMISSED, backgroundPowerPromptDismissed)
+    }
+
+    @Composable
+    private fun BackgroundPowerPrompt() {
+        if (!showBackgroundPowerPrompt) return
+        AlertDialog(
+            onDismissRequest = { dismissBackgroundPowerPrompt() },
+            title = { Text(stringResource(UiR.string.background_power_title)) },
+            text = { Text(stringResource(UiR.string.background_power_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showBackgroundPowerPrompt = false
+                    getSharedPreferences("app_settings", Context.MODE_PRIVATE).edit()
+                        .putBoolean(KEY_BACKGROUND_POWER_OPENED, true).apply()
+                    BackgroundPower.openSettings(this@MainActivity)
+                }) {
+                    Text(stringResource(UiR.string.background_power_open))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { dismissBackgroundPowerPrompt() }) {
+                    Text(stringResource(UiR.string.background_power_later))
+                }
+            }
+        )
+    }
+
+    private fun dismissBackgroundPowerPrompt() {
+        showBackgroundPowerPrompt = false
+        backgroundPowerPromptDismissed = true
     }
 
     private var overlayPromptHandled = false

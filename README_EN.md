@@ -246,7 +246,9 @@ Limits compared with Root mode:
 * The system marks locations as mock, so apps that check it (DingTalk, WeCom, etc.) can tell;
 * With Wi-Fi on, map SDKs such as AMap and Baidu may locate through nearby Wi-Fi and jump back to the real location; turn off Wi-Fi and Wi-Fi scanning;
 * Every app receives the spoofed location; it cannot be limited to chosen apps;
-* Wi-Fi, cell, Bluetooth, satellites and steps are not spoofed, and per-app coordinate systems have no effect.
+* Wi-Fi, cell, Bluetooth, satellites and steps are not spoofed, and per-app coordinate systems have no effect;
+* Phones such as vivo pause background apps, so AMap returns to the real location after a few seconds; allow high background power use for this app in the system battery settings;
+* WeChat uses Tencent location and may not follow in no-root mode.
 
 As in Root mode, stopping finds the real location through Baidu and spoofs there for a few seconds so Google Maps returns to it (needs a Baidu key).
 

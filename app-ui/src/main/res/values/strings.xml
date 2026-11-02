@@ -122,7 +122,7 @@
     <string name="ignore_this_version">Ignore this version</string>
     <string name="app_sha1">App SHA1 Signature</string>
     <string name="map_config">Map Configuration</string>
-    <string name="system_adaptation_desc">Adaptation status, runtime checks and hook status</string>
+    <string name="system_adaptation_desc">Device adaptation status and runtime checks</string>
     <string name="map_config_desc">Map engine, API keys and how to get them</string>
     <string name="custom_amap_key">AMap API Key</string>
     <string name="custom_amap_key_hint">Enter your AMap API Key</string>
@@ -354,8 +354,14 @@
     <string name="mock_permission_missing">Not selected</string>
     <string name="mock_permission_steps">1. Settings → About phone, tap “Build number” 7 times to enable Developer options\n2. Settings → System → Developer options → Select mock location app → choose this app</string>
     <string name="open_developer_options">Open Developer options</string>
+    <string name="background_power_title">Allow high background power use</string>
+    <string name="background_power_text">vivo phones pause background apps, so no-root mode returns to the real location after a few seconds.\n\nTap Open settings, find LocationSpoofer in the list and allow high background power use.</string>
+    <string name="background_power_check_desc">The system does not report this setting, so check in the list that this app is allowed</string>
+    <string name="background_power_open">Open settings</string>
+    <string name="background_power_later">Later</string>
     <string name="run_mode_limits_title">Limits of no-root mode</string>
-    <string name="run_mode_limits">• The system marks spoofed locations as mock, so apps that check it (DingTalk, WeCom, etc.) can tell\n• With Wi-Fi on, map SDKs such as AMap and Baidu may locate through nearby Wi-Fi and jump back to the real location; turn off Wi-Fi and Wi-Fi scanning\n• Every app receives the spoofed location; it cannot be limited to chosen apps\n• Wi-Fi, cell, Bluetooth, satellite and step spoofing and per-app coordinate systems need Root mode</string>
+    <string name="run_mode_limits">• Phones such as vivo pause background apps, so the location returns to the real one after a few seconds: allow high background power use for this app in the system battery settings
+• The system marks spoofed locations as mock, so apps that check it (DingTalk, WeCom, etc.) can tell\n• With Wi-Fi on, map SDKs such as AMap and Baidu may locate through nearby Wi-Fi and jump back to the real location; turn off Wi-Fi and Wi-Fi scanning\n• Every app receives the spoofed location; it cannot be limited to chosen apps\n• Wi-Fi, cell, Bluetooth, satellite and step spoofing and per-app coordinate systems need Root mode</string>
     <string name="mock_setup_dialog_title">Set up mock location</string>
     <string name="mock_setup_dialog_text">No-root mode works through the system mock location API. First select this app as the mock location app in Developer options.</string>
     <string name="mock_mode_wifi_warning">Wi-Fi is on: in no-root mode the location may jump back to the real one; turning off Wi-Fi is recommended</string>

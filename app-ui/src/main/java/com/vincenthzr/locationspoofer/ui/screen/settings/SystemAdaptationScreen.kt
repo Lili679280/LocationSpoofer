@@ -26,11 +26,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.vincenthzr.locationspoofer.data.model.HookStatusReport
 import com.vincenthzr.locationspoofer.data.repository.HookStatusRepository
 import com.vincenthzr.locationspoofer.progress.AdaptationProgressSource
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
+import com.vincenthzr.locationspoofer.utils.BackgroundPower
+import com.vincenthzr.locationspoofer.utils.SpoofMode
+import com.vincenthzr.locationspoofer.viewmodel.openDeveloperOptions
 import com.vincenthzr.locationspoofer.viewmodel.setDebugDumpSystemServices
 import org.koin.compose.koinInject
 import com.vincenthzr.locationspoofer.ui.R
@@ -113,6 +119,16 @@ fun SystemAdaptationScreen(
         return
     }
 
+    // 从开发者选项回来时重新检查是否已被选为模拟位置信息应用
+    var resumeCount by remember { mutableIntStateOf(0) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) resumeCount++ }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    val hasMockPermission = remember(resumeCount) { SpoofMode.hasMockLocationPermission(context) }
+
     BackHandler(onBack = onClose)
 
     Box(
@@ -174,44 +190,73 @@ fun SystemAdaptationScreen(
 
                     Spacer(Modifier.height(14.dp))
 
-                    // 测试 Root 权限与框架配置通道
-                    CheckActionRow(
-                        title = stringResource(R.string.test_root_setup_title),
-                        description = stringResource(R.string.test_root_setup_desc),
-                        running = uiState.isTestingRootSetup,
-                        tint = AccentBlue,
-                        isDark = isDark,
-                        onClick = { if (!uiState.isTestingRootSetup) viewModel.testRootSetup() }
-                    )
+                    if (uiState.isMockMode) {
+                        // 免 Root 模式没有 Root 和 Hook 可测，只看它自己依赖的两项系统设置
+                        CheckActionRow(
+                            title = stringResource(R.string.mock_permission_title),
+                            description = stringResource(
+                                if (hasMockPermission) R.string.mock_permission_granted else R.string.mock_permission_missing
+                            ),
+                            running = false,
+                            tint = if (hasMockPermission) AccentGreen else AccentOrange,
+                            isDark = isDark,
+                            onClick = { viewModel.openDeveloperOptions() }
+                        )
 
-                    Spacer(Modifier.height(8.dp))
+                        if (BackgroundPower.needsSetup) {
+                            Spacer(Modifier.height(8.dp))
 
-                    // 重启目标应用，让它们加载当前模块并重新订阅框架配置
-                    CheckActionRow(
-                        title = stringResource(R.string.restart_hooked_apps_title),
-                        description = stringResource(R.string.restart_hooked_apps_desc),
-                        running = uiState.isRestartingHookedApps,
-                        tint = AccentOrange,
-                        isDark = isDark,
-                        onClick = { if (!uiState.isRestartingHookedApps) viewModel.requestRestartHookedApps() }
-                    )
+                            CheckActionRow(
+                                title = stringResource(R.string.background_power_title),
+                                description = stringResource(R.string.background_power_check_desc),
+                                running = false,
+                                tint = AccentOrange,
+                                isDark = isDark,
+                                onClick = { BackgroundPower.openSettings(context) }
+                            )
+                        }
+                    } else {
+                        // 测试 Root 权限与框架配置通道
+                        CheckActionRow(
+                            title = stringResource(R.string.test_root_setup_title),
+                            description = stringResource(R.string.test_root_setup_desc),
+                            running = uiState.isTestingRootSetup,
+                            tint = AccentBlue,
+                            isDark = isDark,
+                            onClick = { if (!uiState.isTestingRootSetup) viewModel.testRootSetup() }
+                        )
+
+                        Spacer(Modifier.height(8.dp))
+
+                        // 重启目标应用，让它们加载当前模块并重新订阅框架配置
+                        CheckActionRow(
+                            title = stringResource(R.string.restart_hooked_apps_title),
+                            description = stringResource(R.string.restart_hooked_apps_desc),
+                            running = uiState.isRestartingHookedApps,
+                            tint = AccentOrange,
+                            isDark = isDark,
+                            onClick = { if (!uiState.isRestartingHookedApps) viewModel.requestRestartHookedApps() }
+                        )
+                    }
                 }
 
-                val summary = hookStatusSummary(hookReports)
-                NavigationRowCard(
-                    title = stringResource(R.string.hook_status_title),
-                    chip = when {
-                        hookLoading && hookReports.isEmpty() -> null
-                        summary == null -> stringResource(R.string.hook_status_summary_none)
-                        else -> stringResource(R.string.hook_status_summary, summary.first, summary.second)
-                    },
-                    chipColor = when {
-                        summary == null -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-                        summary.first == summary.second -> AccentGreen
-                        else -> AccentOrange
-                    },
-                    onClick = { showHookStatus = true }
-                )
+                if (!uiState.isMockMode) {
+                    val summary = hookStatusSummary(hookReports)
+                    NavigationRowCard(
+                        title = stringResource(R.string.hook_status_title),
+                        chip = when {
+                            hookLoading && hookReports.isEmpty() -> null
+                            summary == null -> stringResource(R.string.hook_status_summary_none)
+                            else -> stringResource(R.string.hook_status_summary, summary.first, summary.second)
+                        },
+                        chipColor = when {
+                            summary == null -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                            summary.first == summary.second -> AccentGreen
+                            else -> AccentOrange
+                        },
+                        onClick = { showHookStatus = true }
+                    )
+                }
 
                 NavigationRowCard(
                     title = stringResource(R.string.adaptation_progress_full),

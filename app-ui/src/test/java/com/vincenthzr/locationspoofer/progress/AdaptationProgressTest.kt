@@ -30,8 +30,8 @@ class AdaptationProgressTest {
         assertEquals("Android 17", aosp.verifiedVersions)
 
         val vivo = AdaptationProgress.findGlobalSystem(doc, RomFamily.ORIGINOS_FUNTOUCH.progressKeywords)!!
-        assertEquals(AdaptationProgress.Status.UNVERIFIED, vivo.status)
-        assertEquals("", vivo.verifiedVersions)
+        assertEquals(AdaptationProgress.Status.PARTIAL, vivo.status)
+        assertEquals("OriginOS 6（Android 16）", vivo.verifiedVersions)
 
         val hyperOs = AdaptationProgress.findGlobalSystem(doc, RomFamily.HYPEROS_MIUI.progressKeywords)!!
         assertEquals(AdaptationProgress.Status.UNVERIFIED, hyperOs.status)

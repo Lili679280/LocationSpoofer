@@ -39,6 +39,8 @@ class RomRulesTest {
     fun `builds a readable system label`() {
         assertEquals("HyperOS 4.0 · Android 17", profile("Xiaomi", release = "17", prop = "ro.mi.os.version.name" to "OS4.0").systemLabel)
         assertEquals("MIUI V140 · Android 13", profile("Xiaomi", release = "13", prop = "ro.miui.ui.version.name" to "V140").systemLabel)
+        assertEquals("OriginOS 6 · Android 16", profile("vivo", release = "16", prop = "ro.vivo.os.build.display.id" to "OriginOS 6").systemLabel)
+        assertEquals("OriginOS 4.0 · Android 14", profile("vivo", release = "14", prop = "ro.vivo.os.version" to "4.0").systemLabel)
         assertEquals("One UI 6.1 · Android 14", profile("samsung", release = "14", prop = "ro.build.version.oneui" to "60100").systemLabel)
         assertEquals("ColorOS 15.0.0 · Android 15", profile("OPPO", prop = "ro.build.version.oplusrom" to "V15.0.0").systemLabel)
         assertEquals("Flyme · Android 15", profile("Meizu").systemLabel)
