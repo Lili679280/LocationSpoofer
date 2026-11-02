@@ -10,8 +10,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.util.Log
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import com.vincenthzr.locationspoofer.utils.CoordinateUtils
 import com.vincenthzr.locationspoofer.utils.LocationJitter
 import com.vincenthzr.locationspoofer.utils.RouteEngine
@@ -24,16 +22,15 @@ import org.json.JSONObject
  * - 测试定位源的登记、重试与撤销：FakeTraveler 的 MockedLocationProvider（GPL-3.0，mcastillof/FakeTraveler）；
  *   和它一样同时接管 GPS、网络，以及 Android 12 起的融合定位
  * - GPS / 网络定位源的属性取值：GoGoGo 的 ServiceGo（GPL-3.0，ZCShou/GoGoGo），按真实定位源的属性填写
- * - 谷歌服务融合定位的模拟模式：Maestro 的 FusedLocationProvider（Apache-2.0，mobile-dev-inc/maestro），
- *   谷歌地图等用 FusedLocationProviderClient 的 App 靠它跟随
+ *
+ * 不用谷歌服务的 setMockMode：谷歌地图靠上面的测试定位源就能跟随，而关闭这个模式会清掉谷歌服务记住的位置，
+ * 停止后打开谷歌地图一直没有蓝点（实测，室内拿不到新定位时恢复不了）。
  *
  * 位置由 [RouteEngine] 按配置推算，和 Root 模式的 Hook 用同一套路线、摇杆与速度逻辑。
  */
 class MockLocationPusher(private val context: Context) {
 
     private val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    private val fusedClient: FusedLocationProviderClient? =
-        runCatching { LocationServices.getFusedLocationProviderClient(context) }.getOrNull()
     private val jitter = LocationJitter()
     private val providers = buildList {
         add(LocationManager.GPS_PROVIDER)
@@ -44,7 +41,6 @@ class MockLocationPusher(private val context: Context) {
     /** 登记测试定位源；没被选为"模拟位置信息应用"时抛出 [SecurityException] */
     fun start() {
         for (provider in providers) addProvider(provider)
-        fusedClient?.setMockMode(true)?.addOnFailureListener { Log.w(TAG, "Fused mock mode unavailable", it) }
     }
 
     /** 按当前配置推送一次位置；配置未激活时不推送 */
@@ -68,14 +64,10 @@ class MockLocationPusher(private val context: Context) {
                 // 停止时 LocationRepository 先撤销定位源、再停服务，这一瞬间定位源已不存在，下一轮任务就被取消了
             }
         }
-        fusedClient?.setMockLocation(
-            buildLocation(FUSED, lat, lng, altitude, motion.bearing, motion.speed, now, satellites, accuracy)
-        )
     }
 
-    /** 撤销测试定位源与谷歌服务模拟模式，系统立即恢复真实定位 */
+    /** 撤销测试定位源，系统恢复真实定位 */
     fun stop() {
-        fusedClient?.setMockMode(false)
         for (provider in providers) removeProvider(provider)
     }
 
@@ -162,7 +154,6 @@ class MockLocationPusher(private val context: Context) {
     private companion object {
         const val TAG = "MockLocationPusher"
         const val MAX_RETRY_COUNT = 3
-        const val FUSED = "fused"
 
         /** 网络定位本来就不如 GPS 准，给一个常见的室外网络定位精度 */
         const val NETWORK_ACCURACY_M = 12f

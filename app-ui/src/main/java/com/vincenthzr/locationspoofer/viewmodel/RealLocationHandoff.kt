@@ -6,6 +6,10 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.SystemClock
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.vincenthzr.locationspoofer.data.repository.LocationRepository
 import com.vincenthzr.locationspoofer.data.repository.SettingsRepository
 import com.vincenthzr.locationspoofer.utils.CoordinateUtils
@@ -67,9 +71,32 @@ class RealLocationHandoff(
                 mockBluetooth = false,
                 enableJitter = false
             )
-            delay(REAL_LOCATION_HANDOFF_MS)
+            val stopListening = keepGmsListening()
+            try {
+                delay(REAL_LOCATION_HANDOFF_MS)
+            } finally {
+                stopListening()
+            }
             if (!settingsRepository.isSpoofingActive) locationRepository.stopSpoofing(context)
         }
+    }
+
+    /**
+     * 交还期间自己向谷歌定位服务要定位。没有 App 在要定位时（谷歌地图在后台或没打开）它不处理新定位，
+     * 记忆得不到纠正：之后打开谷歌地图，Root 模式还停在模拟的地方，免 Root 模式则一直没有蓝点。
+     */
+    @SuppressLint("MissingPermission")
+    private fun keepGmsListening(): () -> Unit {
+        val client = LocationServices.getFusedLocationProviderClient(context)
+        val callback = object : LocationCallback() {}
+        runCatching {
+            client.requestLocationUpdates(
+                LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, GMS_LISTEN_INTERVAL_MS).build(),
+                callback,
+                android.os.Looper.getMainLooper()
+            )
+        }
+        return { runCatching { client.removeLocationUpdates(callback) } }
     }
 
     /** 交还进行中时立即结束（通知栏又点了一次停止）：不再等那几秒，直接停掉 */
@@ -179,6 +206,7 @@ class RealLocationHandoff(
          * App（例如前台的谷歌地图）才会收到并采用这个真实位置，所以不能太短
          */
         const val REAL_LOCATION_HANDOFF_MS = 5_000L
+        const val GMS_LISTEN_INTERVAL_MS = 1_000L
 
         /** 停止后等待一次新的真实定位的最长时间，超时就放弃交还 */
         const val REAL_LOCATION_WAIT_MS = 20_000L

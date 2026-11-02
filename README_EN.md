@@ -246,8 +246,9 @@ Limits compared with Root mode:
 * The system marks locations as mock, so apps that check it (DingTalk, WeCom, etc.) can tell;
 * With Wi-Fi on, map SDKs such as AMap and Baidu may locate through nearby Wi-Fi and jump back to the real location; turn off Wi-Fi and Wi-Fi scanning;
 * Every app receives the spoofed location; it cannot be limited to chosen apps;
-* Wi-Fi, cell, Bluetooth, satellites and steps are not spoofed, and per-app coordinate systems have no effect;
-* After stopping, Google Maps shows the current location again only once it gets a new real fix, which can take a while indoors.
+* Wi-Fi, cell, Bluetooth, satellites and steps are not spoofed, and per-app coordinate systems have no effect.
+
+As in Root mode, stopping finds the real location through Baidu and spoofs there for a few seconds so Google Maps returns to it (needs a Baidu key).
 
 ### 3. Usage Scenarios
 
