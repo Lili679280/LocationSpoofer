@@ -23,6 +23,8 @@ import com.vincenthzr.locationspoofer.xposed.LocationHooker
 import com.vincenthzr.locationspoofer.xposed.hooks.vendor.SystemComponent
 import com.vincenthzr.locationspoofer.xposed.hooks.vendor.SystemClassLocator
 import com.vincenthzr.locationspoofer.xposed.utils.*
+import com.vincenthzr.locationspoofer.utils.SpoofedMotion
+import com.vincenthzr.locationspoofer.utils.RouteEngine
 import io.github.libxposed.api.*
 import org.json.JSONObject
 import java.util.Collections

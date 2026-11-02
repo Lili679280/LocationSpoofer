@@ -21,4 +21,5 @@
     <string name="fj_discard">Discard</string>
     <string name="fj_saved_toast">Route saved</string>
     <string name="spoofing_service_stop">Stop spoofing</string>
+    <string name="mock_location_not_allowed">No-root mode needs this app selected as the mock location app in Developer options; spoofing stopped</string>
 </resources>

@@ -510,6 +510,8 @@ internal fun MainViewModel.checkEnvTokens(wigleToken: String, opencellidToken: S
 }
 
 internal suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Double) {
+    // 免 Root 模式模拟不了 Wi-Fi，不必消耗查询次数
+    if (locationRepository.isMockMode()) return
     val settingsToken = settingsRepository.getWigleApiToken()
     if (settingsToken.isBlank()) {
         withContext(Dispatchers.Main) {
@@ -650,6 +652,8 @@ internal suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Doub
 }
 
 internal suspend fun MainViewModel.fetchCellFromOpenCellIdSync(lat: Double, lng: Double) {
+    // 免 Root 模式模拟不了基站，不必消耗查询次数
+    if (locationRepository.isMockMode()) return
     val tokenToUse = settingsRepository.getOpencellidApiToken()
     if (tokenToUse.isBlank()) {
         return

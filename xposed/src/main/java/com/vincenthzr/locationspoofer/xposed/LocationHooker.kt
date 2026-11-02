@@ -17,6 +17,7 @@
 package com.vincenthzr.locationspoofer.xposed
 
 import com.vincenthzr.locationspoofer.xposed.utils.*
+import com.vincenthzr.locationspoofer.utils.RouteEngine
 import com.vincenthzr.locationspoofer.xposed.hooks.*
 import com.vincenthzr.locationspoofer.xposed.hooks.network.*
 import com.vincenthzr.locationspoofer.xposed.hooks.vendor.VendorRegistry
@@ -518,10 +519,6 @@ class LocationHooker : XposedModule() {
     internal var startTimestamp = System.currentTimeMillis()
 
     internal val rng = Random()
-    internal var hookDriftLat = 0.0
-    internal var hookDriftLng = 0.0
-    internal var hookAccuracyDrift = 0.0
-    internal var hookLastCallTime = 0L
 
     /** Complete normalized snapshots are swapped atomically by the framework receiver. */
     @Volatile

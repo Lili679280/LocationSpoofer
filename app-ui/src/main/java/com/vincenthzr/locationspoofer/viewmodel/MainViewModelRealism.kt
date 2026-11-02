@@ -43,6 +43,18 @@ internal fun MainViewModel.deleteGaitTemplate() {
     _uiState.update { it.copy(gaitTemplateCadence = null, gaitTemplateStrides = 0, useGaitTemplate = false) }
 }
 
+/** 切换运行模式；模拟进行中不能切换，两种模式的启停方式不同 */
+internal fun MainViewModel.setForceMockMode(enabled: Boolean) {
+    if (_uiState.value.isSpoofingActive) {
+        android.widget.Toast.makeText(
+            context, context.getString(com.vincenthzr.locationspoofer.ui.R.string.run_mode_stop_first), android.widget.Toast.LENGTH_SHORT
+        ).show()
+        return
+    }
+    settingsRepository.forceMockMode = enabled
+    _uiState.update { it.copy(forceMockMode = enabled, isMockMode = locationRepository.isMockMode()) }
+}
+
 internal fun MainViewModel.setKeepLastMapPosition(enabled: Boolean) {
     settingsRepository.keepLastMapPosition = enabled
     _uiState.update { it.copy(keepLastMapPosition = enabled) }

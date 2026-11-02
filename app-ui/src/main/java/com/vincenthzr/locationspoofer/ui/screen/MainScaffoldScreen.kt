@@ -83,6 +83,7 @@ enum class MainSubScreen {
     SystemAdaptation,
     MotionRealism,
     EnvTokens,
+    RunMode,
     SystemHookApps
 }
 
@@ -407,7 +408,8 @@ fun MainScaffoldScreen(
                             onNavigateToMapEngine = { currentSubScreen = MainSubScreen.MapEngineSettings },
                             onNavigateToSystemAdaptation = { currentSubScreen = MainSubScreen.SystemAdaptation },
                             onNavigateToMotionRealism = { currentSubScreen = MainSubScreen.MotionRealism },
-                            onNavigateToEnvTokens = { currentSubScreen = MainSubScreen.EnvTokens }
+                            onNavigateToEnvTokens = { currentSubScreen = MainSubScreen.EnvTokens },
+                            onNavigateToRunMode = { currentSubScreen = MainSubScreen.RunMode }
                         )
                     }
                 }
@@ -489,6 +491,13 @@ fun MainScaffoldScreen(
                     )
 
                     MainSubScreen.EnvTokens -> com.vincenthzr.locationspoofer.ui.screen.settings.EnvTokensScreen(
+                        viewModel = viewModel,
+                        uiState = uiState,
+                        isDark = isDark,
+                        onClose = { currentSubScreen = MainSubScreen.None }
+                    )
+
+                    MainSubScreen.RunMode -> com.vincenthzr.locationspoofer.ui.screen.settings.RunModeScreen(
                         viewModel = viewModel,
                         uiState = uiState,
                         isDark = isDark,

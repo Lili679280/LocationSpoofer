@@ -70,16 +70,16 @@ fun StartSpoofingDialog(
                         .verticalScroll(rememberScrollState())
                 ) {
                     Text(
-                        text = stringResource(R.string.spoofing_options_desc),
+                        text = stringResource(if (uiState.isMockMode) R.string.spoofing_options_desc_mock else R.string.spoofing_options_desc),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                     )
                     Spacer(Modifier.height(16.dp))
 
                     // 两种方案都根据当前点位的数据能力显示选项；在线数据源可在开始模拟时补齐数据。
-                    val showWifiToggle = uiState.canMockWifi || uiState.wigleToken.isNotBlank()
-                    val showCellToggle = uiState.canMockCell || uiState.opencellidToken.isNotBlank()
-                    val showBluetoothToggle = uiState.canMockBluetooth
+                    val showWifiToggle = !uiState.isMockMode && (uiState.canMockWifi || uiState.wigleToken.isNotBlank())
+                    val showCellToggle = !uiState.isMockMode && (uiState.canMockCell || uiState.opencellidToken.isNotBlank())
+                    val showBluetoothToggle = !uiState.isMockMode && uiState.canMockBluetooth
 
                     if (showWifiToggle) {
                         Row(
@@ -176,28 +176,30 @@ fun StartSpoofingDialog(
                         Switch(checked = uiState.enableJitter, onCheckedChange = { onToggleJitter() })
                     }
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Outlined.RestartAlt,
-                            null,
-                            tint = AccentBlue,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(Modifier.width(12.dp))
-                        Text(
-                            stringResource(R.string.restart_apps_on_spoof),
-                            modifier = Modifier.weight(1f),
-                            fontSize = 15.sp,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        Switch(
-                            checked = uiState.restartAppsOnSpoof,
-                            onCheckedChange = { onToggleRestartApps() })
+                    if (!uiState.isMockMode) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Outlined.RestartAlt,
+                                null,
+                                tint = AccentBlue,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                stringResource(R.string.restart_apps_on_spoof),
+                                modifier = Modifier.weight(1f),
+                                fontSize = 15.sp,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            Switch(
+                                checked = uiState.restartAppsOnSpoof,
+                                onCheckedChange = { onToggleRestartApps() })
+                        }
                     }
 
                     Spacer(Modifier.height(8.dp))
@@ -207,21 +209,23 @@ fun StartSpoofingDialog(
                         onAltitudeChange = onAltitudeChange,
                         onVariationChange = onAltitudeVariationChange
                     )
-                    Spacer(Modifier.height(8.dp))
-                    androidx.compose.material3.OutlinedTextField(
-                        value = uiState.satelliteCountInput,
-                        onValueChange = onSatelliteCountChange,
-                        label = { Text(stringResource(R.string.satellite_count), fontSize = 12.sp) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
-                        ),
-                        colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = AccentBlue,
-                            focusedLabelColor = AccentBlue
+                    if (!uiState.isMockMode) {
+                        Spacer(Modifier.height(8.dp))
+                        androidx.compose.material3.OutlinedTextField(
+                            value = uiState.satelliteCountInput,
+                            onValueChange = onSatelliteCountChange,
+                            label = { Text(stringResource(R.string.satellite_count), fontSize = 12.sp) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                            ),
+                            colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = AccentBlue,
+                                focusedLabelColor = AccentBlue
+                            )
                         )
-                    )
+                    }
                 }
 
                 Spacer(Modifier.height(16.dp))

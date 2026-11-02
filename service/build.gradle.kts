@@ -30,8 +30,11 @@ kotlin {
 
 dependencies {
     implementation(project(":core-data"))
+    implementation(project(":core-geo"))
 
     implementation(libs.koin.android)
+    // 免 Root 模式下谷歌服务融合定位的模拟模式
+    implementation(libs.play.services.location)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

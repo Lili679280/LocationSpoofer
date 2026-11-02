@@ -120,39 +120,17 @@ internal fun LocationHooker.getAppTargetCoordinate(
     }
 }
 
-/** 抖动状态会被多个 binder 线程同时推进，统一加锁 */
-private val jitterLock = Any()
+/** 抖动的数学模型与免 Root 模式共用，见 [com.vincenthzr.locationspoofer.utils.LocationJitter] */
+private val jitter = com.vincenthzr.locationspoofer.utils.LocationJitter()
 
 internal fun LocationHooker.getJitteredLocation(
     baseLat: Double,
     baseLng: Double
-): Pair<Double, Double> = synchronized(jitterLock) {
+): Pair<Double, Double> {
     val enableJitter = lastConfig?.optBoolean("enable_jitter", true) ?: true
     if (!enableJitter) return Pair(baseLat, baseLng)
-
-    val now = System.currentTimeMillis()
-    val dt = if (hookLastCallTime > 0) {
-        ((now - hookLastCallTime) / 1000.0).coerceIn(0.01, 5.0)
-    } else 1.0
-    hookLastCallTime = now
-
-    // sigma=0.000002度(约0.2米步长), alpha=0.05(均值回归)
-    val sigma = 0.000002
-    val alpha = 0.05
-
-    // 使用 Ornstein-Uhlenbeck 过程生成自然偏移，并硬性限制在 4 米以内 (约 0.00004 度)
-    hookDriftLat =
-        (hookDriftLat + sigma * sqrt(dt) * rng.nextGaussian() - alpha * hookDriftLat * dt)
-            .coerceIn(-0.00004, 0.00004)
-    hookDriftLng =
-        (hookDriftLng + sigma * sqrt(dt) * rng.nextGaussian() - alpha * hookDriftLng * dt)
-            .coerceIn(-0.00004, 0.00004)
-
-    Pair(baseLat + hookDriftLat, baseLng + hookDriftLng)
+    return jitter.apply(baseLat, baseLng)
 }
 
-internal fun LocationHooker.getJitteredAccuracy(): Float = synchronized(jitterLock) {
-    // 精度值在真实优良室外环境(1.5m-3.5m)微弱起伏，运动与地图软件将判定为满格绿色强信号
-    hookAccuracyDrift += 0.1 * rng.nextGaussian() - 0.05 * hookAccuracyDrift
-    (2.2 + hookAccuracyDrift).coerceIn(1.5, 3.5).toFloat()
-}
+// 精度值在真实优良室外环境(1.5m-3.5m)微弱起伏，运动与地图软件将判定为满格绿色强信号
+internal fun LocationHooker.getJitteredAccuracy(): Float = jitter.accuracy()

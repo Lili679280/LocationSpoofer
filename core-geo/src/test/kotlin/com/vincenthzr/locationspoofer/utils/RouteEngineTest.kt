@@ -1,4 +1,4 @@
-package com.vincenthzr.locationspoofer.xposed.utils
+package com.vincenthzr.locationspoofer.utils
 
 import org.json.JSONArray
 import org.json.JSONObject

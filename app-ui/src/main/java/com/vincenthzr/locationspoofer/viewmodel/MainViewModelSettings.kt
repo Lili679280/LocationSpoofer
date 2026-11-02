@@ -139,6 +139,7 @@ internal fun MainViewModel.initialize() {
             _uiState.update {
                 it.copy(
                     isLSPosedActive = active,
+                    isMockMode = locationRepository.isMockMode(),
                     hookedApps = if (active) lsposedManager.getHookedApps(context) else emptyList()
                 )
             }

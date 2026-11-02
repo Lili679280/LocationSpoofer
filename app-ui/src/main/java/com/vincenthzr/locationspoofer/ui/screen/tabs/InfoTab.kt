@@ -12,6 +12,7 @@ import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.Map
+import androidx.compose.material.icons.rounded.SettingsSuggest
 import androidx.compose.material.icons.rounded.VpnKey
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -63,7 +64,8 @@ fun InfoTab(
     onNavigateToMapEngine: () -> Unit = {},
     onNavigateToSystemAdaptation: () -> Unit = {},
     onNavigateToMotionRealism: () -> Unit = {},
-    onNavigateToEnvTokens: () -> Unit = {}
+    onNavigateToEnvTokens: () -> Unit = {},
+    onNavigateToRunMode: () -> Unit = {}
 ) {
     val isDark = isSystemInDarkTheme()
 
@@ -200,6 +202,17 @@ fun InfoTab(
             }
 
             // 2. 各项设置：和"功能"页一样一项一张卡片
+            item {
+                InfoEntryCard(
+                    icon = Icons.Rounded.SettingsSuggest,
+                    tint = if (uiState.isMockMode) AccentOrange else AccentGreen,
+                    title = stringResource(R.string.run_mode_title),
+                    description = stringResource(R.string.run_mode_desc),
+                    previewChip = stringResource(if (uiState.isMockMode) R.string.run_mode_chip_mock else R.string.run_mode_chip_root),
+                    isDark = isDark,
+                    onClick = onNavigateToRunMode
+                )
+            }
             item {
                 InfoEntryCard(
                     icon = Icons.Rounded.Language,

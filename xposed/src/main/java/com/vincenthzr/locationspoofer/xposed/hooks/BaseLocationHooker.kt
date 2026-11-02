@@ -18,6 +18,8 @@ package com.vincenthzr.locationspoofer.xposed.hooks
 
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
 import com.vincenthzr.locationspoofer.xposed.utils.*
+import com.vincenthzr.locationspoofer.utils.SpoofedMotion
+import com.vincenthzr.locationspoofer.utils.RouteEngine
 import com.vincenthzr.locationspoofer.xposed.hooks.*
 import java.lang.reflect.*
 import kotlin.math.*

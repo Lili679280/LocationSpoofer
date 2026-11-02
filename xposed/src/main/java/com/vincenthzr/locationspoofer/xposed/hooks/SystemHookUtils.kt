@@ -2,7 +2,7 @@ package com.vincenthzr.locationspoofer.xposed.hooks
 
 import android.annotation.SuppressLint
 import android.os.Binder
-import com.vincenthzr.locationspoofer.xposed.utils.SpoofedMotion
+import com.vincenthzr.locationspoofer.utils.SpoofedMotion
 import com.vincenthzr.locationspoofer.xposed.utils.XposedBridge
 import com.vincenthzr.locationspoofer.xposed.utils.XposedHelpers
 import org.json.JSONObject

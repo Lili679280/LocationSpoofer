@@ -2,7 +2,7 @@ package com.vincenthzr.locationspoofer.xposed.hooks
 
 import android.os.Bundle
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
-import com.vincenthzr.locationspoofer.xposed.utils.SpoofedMotion
+import com.vincenthzr.locationspoofer.utils.SpoofedMotion
 import com.vincenthzr.locationspoofer.xposed.utils.XposedHelpers
 
 /**

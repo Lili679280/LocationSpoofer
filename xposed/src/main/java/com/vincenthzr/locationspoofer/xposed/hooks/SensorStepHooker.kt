@@ -24,7 +24,7 @@ import android.os.Looper
 import android.os.SystemClock
 import com.vincenthzr.locationspoofer.utils.GaitTemplate
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
-import com.vincenthzr.locationspoofer.xposed.utils.RouteEngine
+import com.vincenthzr.locationspoofer.utils.RouteEngine
 import com.vincenthzr.locationspoofer.xposed.utils.XposedHelpers
 import org.json.JSONObject
 import java.lang.reflect.Constructor

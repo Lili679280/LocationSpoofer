@@ -246,6 +246,9 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
 
     private suspend fun write(json: JSONObject): Boolean = writeMutex.withLock { writeLocked(json) }
 
+    /** 最近一次写入的完整配置；免 Root 模式在 App 进程里按它推算位置 */
+    fun currentConfig(): JSONObject? = lastJson
+
     private fun writeLocked(json: JSONObject): Boolean {
         // Remember the desired state even if a stop/pause happens while the service is disconnected.
         // Reconnection must never replay an older active session over a newer stop request.
@@ -257,6 +260,8 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
         publicationPending = true
         val service = XposedModuleStatus.mService
         if (service == null) {
+            // 免 Root 模式没有框架可发布，配置只在 App 内使用，不算失败
+            if (SpoofMode.isMockMode(settingsManager)) return true
             android.util.Log.w("LocationSpoofer", "Framework disconnected; latest configuration queued")
             _writeFailures.tryEmit(Unit)
             return false
@@ -269,9 +274,11 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
         service: io.github.libxposed.service.XposedService,
         notifyFailure: Boolean = true
     ): Boolean {
+        // 强制免 Root 模式时模块仍然生效：发给 Hook 的配置一律视为未激活，避免两种方式同时模拟
+        val published = if (SpoofMode.isMockMode(settingsManager)) JSONObject(json.toString()).put("active", false) else json
         return try {
             val prefs = service.getRemotePreferences(FrameworkConfigChannel.GROUP)
-            publisher.publish(json.toString(), object : FrameworkConfigStore {
+            publisher.publish(published.toString(), object : FrameworkConfigStore {
                 override fun commit(snapshot: String): Boolean =
                     prefs.edit().putString(FrameworkConfigChannel.SNAPSHOT_KEY, snapshot).commit()
 

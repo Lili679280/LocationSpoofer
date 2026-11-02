@@ -14,22 +14,36 @@ import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import com.vincenthzr.locationspoofer.data.state.NotificationActions
+import com.vincenthzr.locationspoofer.utils.ConfigManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.koin.android.ext.android.inject
 
 class SpoofingService : Service() {
 
     private lateinit var locationManager: LocationManager
     private var wakeLock: PowerManager.WakeLock? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val configManager: ConfigManager by inject()
+
+    /** 免 Root 模式下持续推送位置的任务，见 [MockLocationPusher] */
+    private var mockPusher: MockLocationPusher? = null
+    private var mockJob: Job? = null
 
     companion object {
         const val ACTION_START = "ACTION_START"
         const val ACTION_STOP = "ACTION_STOP"
         const val EXTRA_LAT = "EXTRA_LAT"
         const val EXTRA_LNG = "EXTRA_LNG"
+        const val EXTRA_MOCK_MODE = "EXTRA_MOCK_MODE"
+        private const val MOCK_PUSH_INTERVAL_MS = 1_000L
         private const val NOTIFICATION_ID = 1001
         private const val CHANNEL_ID = "spoofing_status"
         private const val LEGACY_CHANNEL_ID = "SpoofingServiceChannel"
@@ -50,6 +64,9 @@ class SpoofingService : Service() {
                 val lat = intent.getDoubleExtra(EXTRA_LAT, 0.0)
                 val lng = intent.getDoubleExtra(EXTRA_LNG, 0.0)
                 startSpoofing(lat, lng)
+                if (isRunning) {
+                    if (intent.getBooleanExtra(EXTRA_MOCK_MODE, false)) startMockPushing() else stopMockPushing()
+                }
             }
 
             ACTION_STOP -> stopSpoofing()
@@ -147,8 +164,41 @@ class SpoofingService : Service() {
         wakeLock = null
     }
 
+    /** 免 Root 模式：登记测试定位源，每秒按最新配置推送一次；重复调用（换了位置）时沿用已在跑的任务 */
+    private fun startMockPushing() {
+        if (mockJob?.isActive == true) return
+        val pusher = MockLocationPusher(this)
+        mockPusher = pusher
+        mockJob = serviceScope.launch {
+            try {
+                pusher.start()
+                while (isActive) {
+                    configManager.currentConfig()?.let(pusher::push)
+                    delay(MOCK_PUSH_INTERVAL_MS)
+                }
+            } catch (e: SecurityException) {
+                // 没被选为"模拟位置信息应用"（或中途被取消）：提示后按通知栏"停止"的流程让界面同步停止
+                android.util.Log.e("SpoofingService", "Mock location not allowed", e)
+                withContext(Dispatchers.Main) {
+                    android.widget.Toast.makeText(
+                        this@SpoofingService, R.string.mock_location_not_allowed, android.widget.Toast.LENGTH_LONG
+                    ).show()
+                    sendBroadcast(Intent(NotificationActions.STOP).setPackage(packageName))
+                }
+            }
+        }
+    }
+
+    private fun stopMockPushing() {
+        mockJob?.cancel()
+        mockJob = null
+        mockPusher?.stop()
+        mockPusher = null
+    }
+
     private fun stopSpoofing() {
         isRunning = false
+        stopMockPushing()
         releaseWakeLock()
         cleanupLegacyTestProviders()
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -203,6 +253,7 @@ class SpoofingService : Service() {
         super.onDestroy()
         isRunning = false
         releaseWakeLock()
+        stopMockPushing()
         serviceScope.cancel()
         cleanupLegacyTestProviders()
     }

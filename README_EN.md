@@ -202,8 +202,8 @@ The app hooks system services directly, and their internals differ between vendo
 ## Requirements
 
 * **OS Version**: Android 8.0 (API 26) or higher.
-* **Root Manager**: Root access is required (recommended: [**KernelSU**](https://kernelsu.org) / **APatch** / **Magisk**).
-* **Xposed Framework**: Installed and enabled **LSPosed (API 101+)** or compatible libxposed API 101+ environment.
+* **Root Manager** (not needed in no-root mode): Root access is required (recommended: [**KernelSU**](https://kernelsu.org) / **APatch** / **Magisk**).
+* **Xposed Framework** (not needed in no-root mode): Installed and enabled **LSPosed (API 101+)** or compatible libxposed API 101+ environment.
 
 ---
 
@@ -233,6 +233,21 @@ git clone https://github.com/Lili679280/LocationSpoofer.git
 > [!NOTE]
 > **Scope of spoofing**: this app itself, phone / emergency services and apps outside the list always get the real GPS. However, for Google Maps to work, Google Play services must be spoofed too,
 > and it computes Android's "network" and "fused" locations — so an app outside the list that asks Google for its location still gets the spoofed position.
+
+### No-root mode
+When the LSPosed module is not active, the app automatically uses no-root mode, which works through the system mock location API in Developer options. You can also force it under "Info → Run Mode".
+
+1. Enable Developer options (Settings → About phone, tap "Build number" 7 times).
+2. In Developer options, tap "Select mock location app" and choose LocationSpoofer.
+3. Return to the app and start fixed-point or route spoofing as usual.
+
+Limits compared with Root mode:
+
+* The system marks locations as mock, so apps that check it (DingTalk, WeCom, etc.) can tell;
+* With Wi-Fi on, map SDKs such as AMap and Baidu may locate through nearby Wi-Fi and jump back to the real location; turn off Wi-Fi and Wi-Fi scanning;
+* Every app receives the spoofed location; it cannot be limited to chosen apps;
+* Wi-Fi, cell, Bluetooth, satellites and steps are not spoofed, and per-app coordinate systems have no effect;
+* After stopping, Google Maps shows the current location again only once it gets a new real fix, which can take a while indoors.
 
 ### 3. Usage Scenarios
 

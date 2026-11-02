@@ -17,5 +17,9 @@ kotlin {
 }
 
 dependencies {
+    // RouteEngine 读写配置 JSON：Android 自带 org.json，这里只在编译和单元测试时引入
+    compileOnly(libs.org.json)
+
     testImplementation(libs.junit)
+    testImplementation(libs.org.json)
 }

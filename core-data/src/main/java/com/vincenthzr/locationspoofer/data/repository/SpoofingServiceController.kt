@@ -10,7 +10,8 @@ import android.content.Context
  */
 interface SpoofingServiceController {
     val isRunning: Boolean
-    fun startForeground(context: Context, lat: Double, lng: Double)
+    /** [mockMode] 为 true 时服务自己通过系统"模拟位置"接口持续推送位置（免 Root 模式） */
+    fun startForeground(context: Context, lat: Double, lng: Double, mockMode: Boolean)
     fun stop(context: Context)
 
     /** 悬浮摇杆当前是否显示 */

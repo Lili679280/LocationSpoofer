@@ -21,4 +21,5 @@
     <string name="fj_discard">放弃</string>
     <string name="fj_saved_toast">路线已保存</string>
     <string name="spoofing_service_stop">停止模拟</string>
+    <string name="mock_location_not_allowed">免 Root 模式需要在开发者选项里把本软件选为「模拟位置信息应用」，模拟已停止</string>
 </resources>

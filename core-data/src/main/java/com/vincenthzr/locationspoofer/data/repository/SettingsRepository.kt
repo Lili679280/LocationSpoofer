@@ -186,6 +186,12 @@ class SettingsRepository(private val settingsManager: SettingsManager) {
             settingsManager.useGaitTemplate = value
         }
 
+    var forceMockMode: Boolean
+        get() = settingsManager.forceMockMode
+        set(value) {
+            settingsManager.forceMockMode = value
+        }
+
     var keepLastMapPosition: Boolean
         get() = settingsManager.keepLastMapPosition
         set(value) {

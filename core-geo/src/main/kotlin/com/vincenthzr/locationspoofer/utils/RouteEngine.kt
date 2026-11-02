@@ -1,10 +1,6 @@
-package com.vincenthzr.locationspoofer.xposed.utils
+package com.vincenthzr.locationspoofer.utils
 
-import com.vincenthzr.locationspoofer.utils.AltitudeModel
 import com.vincenthzr.locationspoofer.utils.CoordinateUtils.LatLng
-import com.vincenthzr.locationspoofer.utils.GeoMath
-import com.vincenthzr.locationspoofer.utils.MotionRealism
-import com.vincenthzr.locationspoofer.utils.RoutePath
 import org.json.JSONArray
 import org.json.JSONObject
 

@@ -217,6 +217,7 @@ internal fun MainViewModel.startRoutePlanning() {
     if (state.routePoints.size < 2) return
     // 手动模式完全靠悬浮摇杆操作，没有悬浮窗权限就不启动，免得路线停在起点无法控制
     if (state.routeRunMode == RouteRunMode.MANUAL && !ensureOverlayPermission()) return
+    if (!ensureMockModeReady()) return
     realLocationHandoff.cancel()
 
     val routeProvider = if (state.useRealRoute) pickRouteProvider(state) else null

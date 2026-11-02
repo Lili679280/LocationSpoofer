@@ -12,6 +12,10 @@ import com.vincenthzr.locationspoofer.utils.ConfigManager
 import com.vincenthzr.locationspoofer.utils.LSPosedManager
 import com.vincenthzr.locationspoofer.utils.RootManager
 import com.vincenthzr.locationspoofer.utils.SettingsManager
+import com.vincenthzr.locationspoofer.utils.SpoofMode
+import com.vincenthzr.locationspoofer.utils.XposedModuleStatus
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -42,6 +46,9 @@ class LocationRepository(
         val hasRoot = rootManager.checkRootAccess()
 
         if (settingsManager.isSpoofingActive) {
+            // 进程刚启动时框架服务还没连上，模块看起来"未生效"；先等一会儿再判断模式，
+            // 免得 Root 用户开机恢复时被误判成免 Root 模式
+            withTimeoutOrNull(MODULE_CONNECT_TIMEOUT_MS) { XposedModuleStatus.isModuleActive.first { it } }
             val lastLat = settingsManager.lastSpoofedLat.toDoubleOrNull() ?: 0.0
             val lastLng = settingsManager.lastSpoofedLng.toDoubleOrNull() ?: 0.0
             if (lastLat != 0.0 && lastLng != 0.0) {
@@ -64,6 +71,9 @@ class LocationRepository(
     }
 
     fun isModuleActive(): Boolean = lsposedManager.isModuleActive()
+
+    /** 当前是否走免 Root 模式，见 [SpoofMode] */
+    fun isMockMode(): Boolean = SpoofMode.isMockMode(settingsManager)
 
     suspend fun startSpoofing(
         context: Context,
@@ -138,10 +148,11 @@ class LocationRepository(
             isAutoCadence
         )
 
-        spoofingServiceController.startForeground(context, lat, lng)
+        spoofingServiceController.startForeground(context, lat, lng, isMockMode())
     }
 
     suspend fun stopSpoofing(context: Context) {
+        val mockMode = isMockMode()
         SpoofingState.isActive = false
         SpoofingState.latitude = 0.0
         SpoofingState.longitude = 0.0
@@ -183,8 +194,9 @@ class LocationRepository(
         // 2. 停止前台模拟服务
         spoofingServiceController.stop(context)
 
-        // 3. 彻底重置系统的 mock_location 状态，防止被澎湃OS/系统安全中心记录为模拟中
-        rootManager.revokeMockLocation()
+        // 3. 彻底重置系统的 mock_location 状态，防止被澎湃OS/系统安全中心记录为模拟中。
+        // 免 Root 模式不能重置：这个权限就是用户在开发者选项里选的"模拟位置信息应用"，重置等于取消选择
+        if (!mockMode) rootManager.revokeMockLocation()
     }
 
     val isFloatingJoystickShowing: Boolean get() = spoofingServiceController.isFloatingJoystickShowing
@@ -303,5 +315,9 @@ class LocationRepository(
 
     suspend fun deleteSavedRoute(route: SavedRouteEntity) {
         savedRouteDao.deleteSavedRoute(route)
+    }
+
+    private companion object {
+        const val MODULE_CONNECT_TIMEOUT_MS = 3_000L
     }
 }

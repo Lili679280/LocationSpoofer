@@ -315,153 +315,156 @@ fun RouteConfigDialog(
                     }
 
                     // 步频与计步模拟卡片
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 14.dp, vertical = 10.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                    // 计步靠 Hook 传感器，免 Root 模式做不到
+                    if (!uiState.isMockMode) {
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        stringResource(R.string.step_cadence_simulation),
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Text(
-                                        stringResource(R.string.step_cadence_simulation_desc),
-                                        fontSize = 11.5.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
-                                    )
-                                }
-                                Switch(
-                                    checked = uiState.enableStepSimulation,
-                                    onCheckedChange = onEnableStepSimulationChange,
-                                    colors = SwitchDefaults.colors(
-                                        checkedThumbColor = Color.White,
-                                        checkedTrackColor = AccentBlue
-                                    )
-                                )
-                            }
-
-                            if (uiState.enableStepSimulation) {
-                                // 步频模式切换：自适应 vs 固定步频
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Surface(
-                                        shape = RoundedCornerShape(10.dp),
-                                        color = if (uiState.isAutoCadence) AccentBlue.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(
-                                            alpha = 0.5f
-                                        ),
-                                        border = if (uiState.isAutoCadence) BorderStroke(
-                                            1.dp,
-                                            AccentBlue
-                                        ) else null,
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .clickable { onIsAutoCadenceChange(true) }
-                                    ) {
+                                    Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            stringResource(R.string.smart_adaptive_cadence),
-                                            fontSize = 12.sp,
-                                            fontWeight = if (uiState.isAutoCadence) FontWeight.Bold else FontWeight.Normal,
-                                            color = if (uiState.isAutoCadence) AccentBlue else MaterialTheme.colorScheme.onSurface,
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier.padding(vertical = 6.dp)
+                                            stringResource(R.string.step_cadence_simulation),
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            stringResource(R.string.step_cadence_simulation_desc),
+                                            fontSize = 11.5.sp,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
                                         )
                                     }
-
-                                    Surface(
-                                        shape = RoundedCornerShape(10.dp),
-                                        color = if (!uiState.isAutoCadence) AccentBlue.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(
-                                            alpha = 0.5f
-                                        ),
-                                        border = if (!uiState.isAutoCadence) BorderStroke(
-                                            1.dp,
-                                            AccentBlue
-                                        ) else null,
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .clickable { onIsAutoCadenceChange(false) }
-                                    ) {
-                                        Text(
-                                            stringResource(R.string.custom_fixed_cadence),
-                                            fontSize = 12.sp,
-                                            fontWeight = if (!uiState.isAutoCadence) FontWeight.Bold else FontWeight.Normal,
-                                            color = if (!uiState.isAutoCadence) AccentBlue else MaterialTheme.colorScheme.onSurface,
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier.padding(vertical = 6.dp)
+                                    Switch(
+                                        checked = uiState.enableStepSimulation,
+                                        onCheckedChange = onEnableStepSimulationChange,
+                                        colors = SwitchDefaults.colors(
+                                            checkedThumbColor = Color.White,
+                                            checkedTrackColor = AccentBlue
                                         )
-                                    }
+                                    )
                                 }
 
-                                if (!uiState.isAutoCadence) {
-                                    var cadenceSlider by remember(uiState.stepCadenceSpm) {
-                                        mutableFloatStateOf(
-                                            uiState.stepCadenceSpm.toFloat()
-                                        )
-                                    }
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 2.dp, vertical = 2.dp)
+                                if (uiState.enableStepSimulation) {
+                                    // 步频模式切换：自适应 vs 固定步频
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        Surface(
+                                            shape = RoundedCornerShape(10.dp),
+                                            color = if (uiState.isAutoCadence) AccentBlue.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(
+                                                alpha = 0.5f
+                                            ),
+                                            border = if (uiState.isAutoCadence) BorderStroke(
+                                                1.dp,
+                                                AccentBlue
+                                            ) else null,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clickable { onIsAutoCadenceChange(true) }
                                         ) {
                                             Text(
-                                                stringResource(R.string.set_cadence),
+                                                stringResource(R.string.smart_adaptive_cadence),
                                                 fontSize = 12.sp,
-                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                            )
-                                            Text(
-                                                "${cadenceSlider.toInt()} 步/分 (约 ${
-                                                    String.format(
-                                                        Locale.US,
-                                                        "%.1f",
-                                                        cadenceSlider / 60.0
-                                                    )
-                                                } 步/秒)",
-                                                fontSize = 12.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = AccentBlue
+                                                fontWeight = if (uiState.isAutoCadence) FontWeight.Bold else FontWeight.Normal,
+                                                color = if (uiState.isAutoCadence) AccentBlue else MaterialTheme.colorScheme.onSurface,
+                                                textAlign = TextAlign.Center,
+                                                modifier = Modifier.padding(vertical = 6.dp)
                                             )
                                         }
-                                        Slider(
-                                            value = cadenceSlider,
-                                            onValueChange = {
-                                                cadenceSlider = it
-                                                onStepCadenceChange(it.toInt())
-                                            },
-                                            valueRange = 60f..240f,
-                                            steps = 179,
-                                            colors = SliderDefaults.colors(
-                                                thumbColor = AccentBlue,
-                                                activeTrackColor = AccentBlue,
-                                                inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+
+                                        Surface(
+                                            shape = RoundedCornerShape(10.dp),
+                                            color = if (!uiState.isAutoCadence) AccentBlue.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(
+                                                alpha = 0.5f
+                                            ),
+                                            border = if (!uiState.isAutoCadence) BorderStroke(
+                                                1.dp,
+                                                AccentBlue
+                                            ) else null,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clickable { onIsAutoCadenceChange(false) }
+                                        ) {
+                                            Text(
+                                                stringResource(R.string.custom_fixed_cadence),
+                                                fontSize = 12.sp,
+                                                fontWeight = if (!uiState.isAutoCadence) FontWeight.Bold else FontWeight.Normal,
+                                                color = if (!uiState.isAutoCadence) AccentBlue else MaterialTheme.colorScheme.onSurface,
+                                                textAlign = TextAlign.Center,
+                                                modifier = Modifier.padding(vertical = 6.dp)
                                             )
+                                        }
+                                    }
+
+                                    if (!uiState.isAutoCadence) {
+                                        var cadenceSlider by remember(uiState.stepCadenceSpm) {
+                                            mutableFloatStateOf(
+                                                uiState.stepCadenceSpm.toFloat()
+                                            )
+                                        }
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 2.dp, vertical = 2.dp)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    stringResource(R.string.set_cadence),
+                                                    fontSize = 12.sp,
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                                )
+                                                Text(
+                                                    "${cadenceSlider.toInt()} 步/分 (约 ${
+                                                        String.format(
+                                                            Locale.US,
+                                                            "%.1f",
+                                                            cadenceSlider / 60.0
+                                                        )
+                                                    } 步/秒)",
+                                                    fontSize = 12.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = AccentBlue
+                                                )
+                                            }
+                                            Slider(
+                                                value = cadenceSlider,
+                                                onValueChange = {
+                                                    cadenceSlider = it
+                                                    onStepCadenceChange(it.toInt())
+                                                },
+                                                valueRange = 60f..240f,
+                                                steps = 179,
+                                                colors = SliderDefaults.colors(
+                                                    thumbColor = AccentBlue,
+                                                    activeTrackColor = AccentBlue,
+                                                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                                                )
+                                            )
+                                        }
+                                    } else {
+                                        Text(
+                                            stringResource(R.string.smart_cadence_hint),
+                                            fontSize = 11.sp,
+                                            color = AccentBlue.copy(alpha = 0.85f),
+                                            modifier = Modifier.padding(horizontal = 2.dp)
                                         )
                                     }
-                                } else {
-                                    Text(
-                                        stringResource(R.string.smart_cadence_hint),
-                                        fontSize = 11.sp,
-                                        color = AccentBlue.copy(alpha = 0.85f),
-                                        modifier = Modifier.padding(horizontal = 2.dp)
-                                    )
                                 }
                             }
                         }

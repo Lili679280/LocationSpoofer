@@ -113,6 +113,11 @@ data class AppState(
     /** 非空即触发"确认重启应用"弹窗；内容来自 lsposedManager.getHookedApps() */
     val hookedAppsToRestart: List<AppInfoItem>? = null,
     val isLSPosedActive: Boolean = false,
+    /** 免 Root 模式（系统模拟位置），见 SpoofMode */
+    val isMockMode: Boolean = true,
+    val forceMockMode: Boolean = false,
+    /** 免 Root 模式下开始模拟时还没被选为"模拟位置信息应用"，弹出设置引导 */
+    val showMockSetupDialog: Boolean = false,
     val longitudeInput: String = "",
     val latitudeInput: String = "",
     val showCoordinateError: Boolean = false,

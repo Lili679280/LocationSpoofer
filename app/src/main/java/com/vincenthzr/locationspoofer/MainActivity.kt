@@ -12,8 +12,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
@@ -21,11 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Density
 import androidx.core.net.toUri
-import com.vincenthzr.locationspoofer.ui.R
-import com.vincenthzr.locationspoofer.ui.screen.BlockingScreen
 import com.vincenthzr.locationspoofer.ui.screen.InitializingScreen
 import com.vincenthzr.locationspoofer.ui.screen.LanguageSelectionScreen
 import com.vincenthzr.locationspoofer.ui.theme.AppColorSchemeDark
@@ -221,21 +216,11 @@ fun MainScreen(
     when {
         uiState.isInitializing -> InitializingScreen(isDark)
         !uiState.isLanguageSet -> LanguageSelectionScreen(viewModel)
-        !uiState.hasRootAccess -> com.vincenthzr.locationspoofer.ui.screen.DataCollectionAssistScreen(
-            viewModel = viewModel,
-            uiState = uiState,
-            isDark = isDark
-        )
-        !uiState.isLSPosedActive -> BlockingScreen(
-            icon = Icons.Rounded.Extension,
-            title = stringResource(R.string.lsposed_not_active),
-            message = stringResource(R.string.lsposed_message),
-            isDark = isDark
-        )
         else -> com.vincenthzr.locationspoofer.ui.screen.MainScaffoldScreen(
             viewModel = viewModel,
             uiState = uiState
         )
     }
     com.vincenthzr.locationspoofer.ui.screen.CollectionInfoDialogHost(viewModel, uiState)
+    com.vincenthzr.locationspoofer.ui.screen.settings.MockSetupDialogHost(viewModel, uiState)
 }

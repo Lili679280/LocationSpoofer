@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Extension
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.screen.AppCoordinateConfigCard
@@ -36,6 +38,7 @@ import com.vincenthzr.locationspoofer.ui.components.ImportExportSelectionDialog
 import com.vincenthzr.locationspoofer.data.model.ImportExportCounts
 import com.vincenthzr.locationspoofer.data.model.ImportExportSelection
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
+import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.applyImportPackage
@@ -179,6 +182,28 @@ fun FeaturesTab(
                 contentPadding = PaddingValues(bottom = tabBarHeight + 24.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
+                // 免 Root 模式下哪些功能不生效
+                if (uiState.isMockMode) {
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(AccentOrange.copy(alpha = 0.1f))
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Rounded.Info, contentDescription = null, tint = AccentOrange, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(10.dp))
+                            Text(
+                                text = stringResource(R.string.features_mock_mode_notice),
+                                fontSize = 12.5.sp,
+                                color = AccentOrange
+                            )
+                        }
+                    }
+                }
+
                 // 1. 采集本地数据
                 item {
                     ScannerMapCard(

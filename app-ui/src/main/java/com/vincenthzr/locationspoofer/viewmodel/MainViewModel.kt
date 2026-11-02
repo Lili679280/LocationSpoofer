@@ -81,6 +81,7 @@ class MainViewModel(
             gaitTemplateStrides = GaitTemplate.decode(settingsRepository.gaitTemplate)?.strideCount ?: 0,
             useGaitTemplate = settingsRepository.useGaitTemplate,
             keepLastMapPosition = settingsRepository.keepLastMapPosition,
+            forceMockMode = settingsRepository.forceMockMode,
             stayAtRouteStopPoint = settingsRepository.stayAtRouteStopPoint,
             savedLocations = settingsRepository.getSavedLocations(),
             savedRoutes = emptyList(), // 将由 Room Flow 填充
