@@ -59,7 +59,7 @@ Powered by **KernelSU / APatch / Magisk** for root privileges and **LSPosed (lib
 
 ### 1. Multi-Map Engines & Coordinate Adaptation
 * **Triple Engine Support**: Natively integrates AMap 3D, Baidu Maps, and Google Maps for flexible worldwide POI search and road-network routing.
-* **Bring your own map keys**: No AMap, Baidu or Google key is built in. Enter your own keys under "Settings → Map settings"; the package name and signing SHA1 can be copied from the top of that page. "Auto" picks AMap or Baidu based on which keys are filled in.
+* **Bring your own map keys**: No AMap, Baidu or Google key is built in. Enter your own keys under "Settings → Map Configuration"; the package name and signing SHA1 can be copied from the top of that page. "Auto" picks AMap or Baidu based on which keys are filled in.
 * **Route planning**: AMap, Baidu and Google (Routes API) can all plan real road routes, for walking or driving. The Google key entered in the app is used for route planning and Places search; Google Maps rendering itself needs a key written in at build time via `GOOGLE_MAPS_API_KEY`.
 * **Smart Automatic Coordinate Adaptation (Smart Auto)**:
   * Native Android framework APIs consistently output standard `WGS-84` physical coordinates and satellite metadata;
