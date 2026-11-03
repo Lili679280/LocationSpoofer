@@ -62,28 +62,13 @@ class AdaptationState(
     private val scope: CoroutineScope
 ) {
     // 主界面一启动就创建了这个对象，文档等第一次打开页面时才读
-    private val source by lazy { AdaptationProgressSource(context) }
-    private val bundledDocument by lazy { source.local() }
-    private var remoteDocument by mutableStateOf<AdaptationProgressSource.Document?>(null)
-    val document: AdaptationProgressSource.Document
-        get() = remoteDocument ?: bundledDocument
-    var loading by mutableStateOf(false)
-        private set
+    val document by lazy { AdaptationProgressSource(context).local() }
 
     // 全局方案：各系统进程写出的 Hook 运行状态报告
     var hookReports by mutableStateOf<Map<String, HookStatusReport?>>(emptyMap())
         private set
     var hookLoading by mutableStateOf(false)
         private set
-
-    fun refresh() {
-        if (loading) return
-        loading = true
-        scope.launch {
-            source.fetchRemote()?.let { remoteDocument = it }
-            loading = false
-        }
-    }
 
     fun refreshHookStatus() {
         if (hookLoading) return
@@ -118,7 +103,6 @@ fun SystemAdaptationScreen(
     val hookReports = state.hookReports
     val hookLoading = state.hookLoading
     LaunchedEffect(Unit) {
-        state.refresh()
         state.refreshHookStatus()
     }
 

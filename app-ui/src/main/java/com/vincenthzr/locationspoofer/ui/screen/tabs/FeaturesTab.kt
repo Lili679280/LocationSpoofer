@@ -33,11 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
-import com.vincenthzr.locationspoofer.ui.screen.AppCoordinateConfigCard
 import com.vincenthzr.locationspoofer.ui.screen.ImportExportDataCard
-import com.vincenthzr.locationspoofer.ui.screen.ManageDataCard
-import com.vincenthzr.locationspoofer.ui.screen.ScannerMapCard
-import com.vincenthzr.locationspoofer.ui.screen.SystemHookAppsConfigCard
 import com.vincenthzr.locationspoofer.ui.components.ImportExportSelectionDialog
 import com.vincenthzr.locationspoofer.data.model.ImportExportCounts
 import com.vincenthzr.locationspoofer.data.model.ImportExportSelection

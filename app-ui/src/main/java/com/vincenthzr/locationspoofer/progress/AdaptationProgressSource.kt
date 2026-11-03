@@ -11,9 +11,7 @@ import java.io.File
  */
 class AdaptationProgressSource(context: Context) {
 
-    enum class Origin { BUNDLED }
-
-    data class Document(val markdown: String, val origin: Origin)
+    data class Document(val markdown: String)
 
     private val appContext = context.applicationContext
 
@@ -26,12 +24,8 @@ class AdaptationProgressSource(context: Context) {
         val markdown = bundledMarkdown ?: runCatching {
             appContext.assets.open(FILE_NAME).bufferedReader().use { it.readText() }
         }.getOrDefault("").also { bundledMarkdown = it }
-        return Document(markdown, Origin.BUNDLED)
+        return Document(markdown)
     }
-
-    /** 不再联网获取，返回 null 让调用方保留内置文档 */
-    @Suppress("RedundantSuspendModifier")
-    suspend fun fetchRemote(): Document? = null
 
     private companion object {
         const val FILE_NAME = "ADAPTATION_PROGRESS.md"

@@ -30,8 +30,6 @@ import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 @Composable
 fun AdaptationProgressScreen(
     document: AdaptationProgressSource.Document,
-    loading: Boolean,
-    onRefresh: () -> Unit,
     isDark: Boolean = isAppInDarkTheme(),
     onClose: () -> Unit
 ) {

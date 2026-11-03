@@ -53,10 +53,6 @@ class SettingsManager(context: Context) {
         }
     }
 
-    var isDarkMode: Boolean
-        get() = prefs.getBoolean("is_dark_mode", true)
-        set(value) = prefs.edit().putBoolean("is_dark_mode", value).apply()
-
     var language: String
         get() = prefs.getString("language", "") ?: ""
         set(value) = prefs.edit().putString("language", value).apply()

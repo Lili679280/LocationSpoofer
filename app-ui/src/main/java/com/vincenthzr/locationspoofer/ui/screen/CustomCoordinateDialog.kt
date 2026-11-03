@@ -1,7 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
 import com.vincenthzr.locationspoofer.ui.components.AlertDialog
-import com.vincenthzr.locationspoofer.ui.components.Dialog
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth

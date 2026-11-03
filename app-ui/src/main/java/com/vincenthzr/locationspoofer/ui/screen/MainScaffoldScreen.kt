@@ -654,8 +654,6 @@ private fun SubScreenPage(
 
         MainSubScreen.AdaptationProgress -> AdaptationProgressScreen(
             document = adaptationState.document,
-            loading = adaptationState.loading,
-            onRefresh = { adaptationState.refresh() },
             isDark = isDark,
             onClose = onClose
         )
