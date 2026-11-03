@@ -360,11 +360,9 @@
     <string name="background_power_open">Open settings</string>
     <string name="background_power_later">Later</string>
     <string name="run_mode_limits_title">Limits of no-root mode</string>
-    <string name="run_mode_limits">• Phones such as vivo pause background apps, so the location returns to the real one after a few seconds: allow high background power use for this app in the system battery settings
-• The system marks spoofed locations as mock, so apps that check it (DingTalk, WeCom, etc.) can tell\n• With Wi-Fi on, map SDKs such as AMap and Baidu may locate through nearby Wi-Fi and jump back to the real location; turn off Wi-Fi and Wi-Fi scanning\n• Every app receives the spoofed location; it cannot be limited to chosen apps\n• Wi-Fi, cell, Bluetooth, satellite and step spoofing and per-app coordinate systems need Root mode</string>
+    <string name="run_mode_limits">• Phones such as vivo pause background apps, so the location returns to the real one after a few seconds: allow high background power use for this app in the system battery settings\n• The system marks spoofed locations as mock, so apps that check it (DingTalk, WeCom, etc.) can tell\n• Every app receives the spoofed location; it cannot be limited to chosen apps\n• Wi-Fi, cell, Bluetooth, satellite and step spoofing and per-app coordinate systems need Root mode</string>
     <string name="mock_setup_dialog_title">Set up mock location</string>
     <string name="mock_setup_dialog_text">No-root mode works through the system mock location API. First select this app as the mock location app in Developer options.</string>
-    <string name="mock_mode_wifi_warning">Wi-Fi is on: in no-root mode the location may jump back to the real one; turning off Wi-Fi is recommended</string>
     <string name="spoofing_options_desc_mock">No-root mode only spoofs coordinates and altitude; Wi-Fi, cell and other environment data need Root mode.</string>
     <string name="features_mock_mode_notice">No-root mode: per-app coordinate systems, per-app spoofing and Wi-Fi, cell and Bluetooth spoofing need Root mode; collecting and managing data still work</string>
     <string name="map_layers">Map Layers</string>

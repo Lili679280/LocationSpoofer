@@ -150,18 +150,13 @@ internal fun MainViewModel.stopSpoofing(fullStop: Boolean = false) {
 }
 
 /**
- * 免 Root 模式开始模拟前的检查：没被选为"模拟位置信息应用"时弹出设置引导并返回 false；
- * Wi-Fi 开着时提示可能闪回真实位置（GoGoGo 的做法：地图 SDK 会用周围 Wi-Fi 联网定位）。Root 模式直接返回 true。
+ * 免 Root 模式开始模拟前的检查：没被选为"模拟位置信息应用"时弹出设置引导并返回 false。Root 模式直接返回 true。
  */
 internal fun MainViewModel.ensureMockModeReady(): Boolean {
     if (!locationRepository.isMockMode()) return true
     if (!com.vincenthzr.locationspoofer.utils.SpoofMode.hasMockLocationPermission(context)) {
         _uiState.update { it.copy(showMockSetupDialog = true) }
         return false
-    }
-    val wifi = context.applicationContext.getSystemService(android.net.wifi.WifiManager::class.java)
-    if (wifi?.isWifiEnabled == true) {
-        android.widget.Toast.makeText(context, context.getString(R.string.mock_mode_wifi_warning), android.widget.Toast.LENGTH_LONG).show()
     }
     return true
 }
