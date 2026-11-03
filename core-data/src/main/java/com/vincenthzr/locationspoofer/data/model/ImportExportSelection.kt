@@ -2,7 +2,7 @@ package com.vincenthzr.locationspoofer.data.model
 
 /**
  * 导入/导出时用户勾选了哪些分类。
- * API 密钥默认不勾选：分享场景下带上密钥等于泄露个人开发者配额，
+ * 地图 Key 和环境数据源 Token 导出时默认不勾选：分享场景下带上它们等于泄露个人配额，
  * 需要迁移设备的用户可以自己主动勾上。
  */
 data class ImportExportSelection(

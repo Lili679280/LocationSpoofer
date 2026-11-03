@@ -122,7 +122,10 @@ fun FeaturesTab(
                 savedRoutes = pkg.savedRoutes.size,
                 appCoordinateSystems = pkg.appCoordinateSystems.size,
                 settings = if (pkg.settings != null) 1 else 0,
-                apiKeys = if (pkg.apiKeys != null) 1 else 0
+                apiKeys = pkg.apiKeys?.let { k ->
+                    listOf(k.amapApiKey, k.baiduApiKey, k.googleApiKey, k.wigleApiToken, k.opencellidApiToken)
+                        .count { it.isNotBlank() }
+                } ?: 0
             ),
             onConfirm = { selection ->
                 pendingImportPackage = null

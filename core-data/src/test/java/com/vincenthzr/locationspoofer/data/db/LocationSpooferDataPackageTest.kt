@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.data.db
 
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -61,6 +62,19 @@ class LocationSpooferDataPackageTest {
         val text = exportJson.encodeToString(pkg)
         assertTrue(text.contains("amapApiKey"))
         assertTrue(text.contains("test-amap-key"))
+    }
+
+    @Test
+    fun `地图 Key 和环境数据源 Token 都能导出后再读回来`() {
+        val keys = ExportedApiKeys(
+            amapApiKey = "amap",
+            baiduApiKey = "baidu",
+            googleApiKey = "google",
+            wigleApiToken = "wigle",
+            opencellidApiToken = "opencellid"
+        )
+        val text = exportJson.encodeToString(LocationSpooferDataPackage(apiKeys = keys))
+        assertEquals(keys, exportJson.decodeFromString<LocationSpooferDataPackage>(text).apiKeys)
     }
 
     @Test

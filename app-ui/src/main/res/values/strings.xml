@@ -490,7 +490,7 @@ Error details: %s</string>
     <string name="category_saved_routes">Saved routes</string>
     <string name="category_app_coordinates">Per-app coordinate systems</string>
     <string name="category_app_settings">App settings (simulation params, map preferences)</string>
-    <string name="category_api_keys">API Key</string>
+    <string name="category_api_keys">Map keys and data source tokens</string>
     <string name="category_api_keys_warning">Personal credentials. Do not include when sharing with others</string>
     <string name="category_with_count">%1$s (%2$d)</string>
     <string name="category_empty">Nothing to include</string>

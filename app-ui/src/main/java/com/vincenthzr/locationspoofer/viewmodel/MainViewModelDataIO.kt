@@ -678,6 +678,8 @@ internal fun MainViewModel.applyImportPackage(
                     amapApiKey = settingsRepository.getAmapApiKey(),
                     baiduApiKey = settingsRepository.getBaiduApiKey(),
                     googleApiKey = settingsRepository.getGoogleApiKey(),
+                    wigleToken = settingsRepository.getWigleApiToken(),
+                    opencellidToken = settingsRepository.getOpencellidApiToken(),
                     mapType = try {
                         AppMapType.valueOf(settingsRepository.getMapType())
                     } catch (e: Exception) {

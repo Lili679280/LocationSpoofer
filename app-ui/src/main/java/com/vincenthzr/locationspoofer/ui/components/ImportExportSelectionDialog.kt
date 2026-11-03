@@ -38,7 +38,8 @@ fun ImportExportSelectionDialog(
     onConfirm: (ImportExportSelection) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var selection by remember { mutableStateOf(ImportExportSelection()) }
+    // 导入时默认恢复文件里的密钥（迁移设备时要的就是这个）；导出默认不带，见 ImportExportSelection
+    var selection by remember { mutableStateOf(ImportExportSelection(apiKeys = !isExport)) }
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
