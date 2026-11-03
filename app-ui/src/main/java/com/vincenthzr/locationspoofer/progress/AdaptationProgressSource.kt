@@ -23,8 +23,10 @@ class AdaptationProgressSource(context: Context) {
     }
 
     fun local(): Document {
-        val bundled = runCatching { appContext.assets.open(FILE_NAME).bufferedReader().use { it.readText() } }
-        return Document(bundled.getOrDefault(""), Origin.BUNDLED)
+        val markdown = bundledMarkdown ?: runCatching {
+            appContext.assets.open(FILE_NAME).bufferedReader().use { it.readText() }
+        }.getOrDefault("").also { bundledMarkdown = it }
+        return Document(markdown, Origin.BUNDLED)
     }
 
     /** 不再联网获取，返回 null 让调用方保留内置文档 */
@@ -33,5 +35,9 @@ class AdaptationProgressSource(context: Context) {
 
     private companion object {
         const val FILE_NAME = "ADAPTATION_PROGRESS.md"
+
+        // 内置文档不会变，信息页和适配页共用一份
+        @Volatile
+        var bundledMarkdown: String? = null
     }
 }

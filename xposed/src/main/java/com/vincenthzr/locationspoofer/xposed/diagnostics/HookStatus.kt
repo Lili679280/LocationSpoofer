@@ -16,7 +16,7 @@ import org.json.JSONObject
 /**
  * 全局方案的 Hook 运行状态报告：每个系统进程把"选中了哪个适配器、每个组件在哪一层找到了哪个类、
  * 各方法实际挂上了几个重载、部署过程中的异常"写成一份 JSON，App 通过 root 读取后显示在
- * "系统适配 → Hook 运行状态"页。适配新系统、排查用户反馈时不必再让用户导出完整 logcat。
+ * "运行模式与适配 → Hook 运行状态"页。适配新系统、排查用户反馈时不必再让用户导出完整 logcat。
  *
  * 只有调用过 [begin] 的进程（全局方案下的 system_server / com.android.phone / com.android.bluetooth）才会落盘；
  * 其它进程里的记录调用只是写内存，开销可以忽略。写文件在后台线程里合并执行，不阻塞 Hook 部署。

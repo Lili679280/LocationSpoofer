@@ -2,19 +2,19 @@ package com.vincenthzr.locationspoofer.ui.screen.tabs
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.vincenthzr.locationspoofer.ui.theme.isAppInDarkTheme
+import com.vincenthzr.locationspoofer.utils.MotionRealism
+import com.vincenthzr.locationspoofer.utils.SettingsManager
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.DirectionsWalk
 import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.ChevronRight
-import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.Map
-import androidx.compose.material.icons.rounded.SettingsSuggest
-import androidx.compose.material.icons.rounded.VpnKey
+import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,10 +26,14 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,14 +64,11 @@ fun InfoTab(
     updateUiState: UpdateUiState? = null,
     tabBarHeight: Dp = 90.dp,
     onNavigateToUpdate: () -> Unit = {},
-    onNavigateToLanguage: () -> Unit = {},
+    onNavigateToAppearance: () -> Unit = {},
     onNavigateToMapEngine: () -> Unit = {},
-    onNavigateToSystemAdaptation: () -> Unit = {},
-    onNavigateToMotionRealism: () -> Unit = {},
-    onNavigateToEnvTokens: () -> Unit = {},
-    onNavigateToRunMode: () -> Unit = {}
+    onNavigateToSystemAdaptation: () -> Unit = {}
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = isAppInDarkTheme()
 
     val currentVersion = BuildConfig.VERSION_NAME
     val targetReleases = remember(updateUiState?.releases, uiState.checkBetaUpdates) {
@@ -79,20 +80,13 @@ fun InfoTab(
         latestRelease != null && isNewerVersion(latestRelease.versionName, currentVersion)
     }
 
-    // 获取当前生效的语言名称
-    val defaultLangText = stringResource(R.string.default_language)
-    val savedLangCode = viewModel.getSavedLanguage()
-    val currentLangName = remember(savedLangCode, defaultLangText) {
-        LANGUAGES.firstOrNull { it.code == savedLangCode }?.nativeName ?: defaultLangText
-    }
-
     // 本机在适配进度表里的状态（只读本地缓存 / 内置文档，不联网），非全局方案不依赖系统适配，不显示
     val progressContext = LocalContext.current
     val statusVerified = stringResource(R.string.progress_status_verified)
     val statusPartial = stringResource(R.string.progress_status_partial)
     val statusBroken = stringResource(R.string.progress_status_broken)
     val statusUnverified = stringResource(R.string.progress_status_unverified)
-    val adaptationStatusChip = remember {
+    val adaptationStatusChip = remember(statusVerified, statusPartial, statusBroken, statusUnverified) {
         val markdown = AdaptationProgressSource(progressContext).local().markdown
         val family = VendorProfile.current.family
         when (AdaptationProgress.findGlobalSystem(markdown, family.progressKeywords)?.status) {
@@ -102,14 +96,6 @@ fun InfoTab(
             else -> statusUnverified
         }
     }
-
-    val realismLevelNames = listOf(
-        stringResource(R.string.realism_level_off),
-        stringResource(R.string.realism_level_low),
-        stringResource(R.string.realism_level_medium),
-        stringResource(R.string.realism_level_high)
-    )
-    val currentRealismLevelName = realismLevelNames.getOrNull(uiState.realismLevel) ?: realismLevelNames[2]
 
     // 获取当前地图引擎名称
     val autoText = stringResource(R.string.map_engine_auto)
@@ -201,27 +187,16 @@ fun InfoTab(
                 )
             }
 
-            // 2. 各项设置：和"功能"页一样一项一张卡片
+            // 2. 各项设置：和"功能"页一样一项一张卡片，语言和主题、运行模式和适配各合成一项
             item {
                 InfoEntryCard(
-                    icon = Icons.Rounded.SettingsSuggest,
-                    tint = if (uiState.isMockMode) AccentOrange else AccentGreen,
-                    title = stringResource(R.string.run_mode_title),
-                    description = stringResource(R.string.run_mode_desc),
-                    previewChip = stringResource(if (uiState.isMockMode) R.string.run_mode_chip_mock else R.string.run_mode_chip_root),
-                    isDark = isDark,
-                    onClick = onNavigateToRunMode
-                )
-            }
-            item {
-                InfoEntryCard(
-                    icon = Icons.Rounded.Language,
+                    icon = Icons.Rounded.Palette,
                     tint = AccentBlue,
-                    title = stringResource(R.string.select_language),
-                    description = stringResource(R.string.switch_language_desc),
-                    previewChip = currentLangName,
+                    title = stringResource(R.string.appearance_language_title),
+                    description = stringResource(R.string.appearance_language_desc),
+                    previewChip = currentThemeModeName(uiState) + " · " + currentLanguageName(viewModel),
                     isDark = isDark,
-                    onClick = onNavigateToLanguage
+                    onClick = onNavigateToAppearance
                 )
             }
             item {
@@ -236,45 +211,60 @@ fun InfoTab(
                 )
             }
             item {
-                InfoEntryCard(
-                    icon = Icons.AutoMirrored.Rounded.DirectionsWalk,
-                    tint = AccentOrange,
-                    title = stringResource(R.string.motion_realism_title),
-                    description = stringResource(R.string.motion_realism_desc),
-                    previewChip = currentRealismLevelName,
-                    isDark = isDark,
-                    onClick = onNavigateToMotionRealism
-                )
-            }
-            item {
-                // 本机适配状态、运行检测与 Hook 运行状态，完整进度在它的二级页面
+                // 当前模式、本机适配状态和运行检测，完整进度和 Hook 状态在下一级
                 InfoEntryCard(
                     icon = Icons.Rounded.Devices,
-                    tint = AccentGreen,
-                    title = stringResource(R.string.system_adaptation_title),
-                    description = stringResource(R.string.system_adaptation_desc),
-                    previewChip = adaptationStatusChip,
+                    tint = if (uiState.isMockMode) AccentOrange else AccentGreen,
+                    title = stringResource(R.string.run_mode_title),
+                    description = stringResource(R.string.run_mode_desc),
+                    previewChip = stringResource(
+                        if (uiState.isMockMode) R.string.run_mode_chip_mock else R.string.run_mode_chip_root
+                    ) + " · " + adaptationStatusChip,
                     isDark = isDark,
                     onClick = onNavigateToSystemAdaptation
-                )
-            }
-            item {
-                InfoEntryCard(
-                    icon = Icons.Rounded.VpnKey,
-                    tint = AccentBlue,
-                    title = stringResource(R.string.env_datasource_tokens_title),
-                    description = stringResource(R.string.env_datasource_tokens_desc),
-                    isDark = isDark,
-                    onClick = onNavigateToEnvTokens
                 )
             }
         }
     }
 }
 
-/** 信息页的一项设置入口，样式和"功能"页的卡片一致：图标 + 标题与说明 + 可选状态 chip + 箭头 */
+private val ENTRY_CHIP_PADDING = 7.dp
+
+/** 入口卡片里除了文字和状态之外的宽度：图标 38 + 间距 14 + 状态前间距 8 + 箭头前间距 8 + 箭头 18 */
+private val ENTRY_FIXED_WIDTH = 86.dp
+
+/** 当前语言的名称 */
 @Composable
-private fun InfoEntryCard(
+internal fun currentLanguageName(viewModel: MainViewModel): String {
+    val defaultLangText = stringResource(R.string.default_language)
+    val savedLangCode = viewModel.getSavedLanguage()
+    return LANGUAGES.firstOrNull { it.code == savedLangCode }?.nativeName ?: defaultLangText
+}
+
+/** 当前深色模式设置的名称 */
+@Composable
+internal fun currentThemeModeName(uiState: AppState): String = stringResource(
+    when (uiState.themeMode) {
+        SettingsManager.THEME_MODE_LIGHT -> R.string.theme_mode_light
+        SettingsManager.THEME_MODE_DARK -> R.string.theme_mode_dark
+        else -> R.string.theme_mode_system
+    }
+)
+
+/** 当前运动真实度档位的名称 */
+@Composable
+internal fun currentRealismLevelName(uiState: AppState): String = stringResource(
+    when (MotionRealism.Level.fromId(uiState.realismLevel)) {
+        MotionRealism.Level.OFF -> R.string.realism_level_off
+        MotionRealism.Level.LOW -> R.string.realism_level_low
+        MotionRealism.Level.MEDIUM -> R.string.realism_level_medium
+        MotionRealism.Level.HIGH -> R.string.realism_level_high
+    }
+)
+
+/** 一项设置入口：图标 + 标题与说明 + 可选状态 chip + 箭头 */
+@Composable
+internal fun InfoEntryCard(
     icon: ImageVector,
     tint: Color,
     title: String,
@@ -283,6 +273,9 @@ private fun InfoEntryCard(
     onClick: () -> Unit,
     previewChip: String? = null
 ) {
+    val titleStyle = LocalTextStyle.current.merge(TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium))
+    val descriptionStyle = LocalTextStyle.current.merge(TextStyle(fontSize = 12.sp))
+    val chipStyle = LocalTextStyle.current.merge(TextStyle(fontSize = 11.sp, fontWeight = FontWeight.SemiBold))
     MiuixCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -290,6 +283,19 @@ private fun InfoEntryCard(
         cornerRadius = 16.dp,
         insideMargin = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
     ) {
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        // 状态放右边的话文字还剩多宽：标题要折行、说明超过两行，就改放到说明下面
+        val textMeasurer = rememberTextMeasurer()
+        val density = LocalDensity.current
+        val chipBelow = remember(title, description, previewChip, constraints.maxWidth, density, titleStyle, descriptionStyle, chipStyle) {
+            if (previewChip == null) return@remember false
+            val chipWidth = textMeasurer.measure(previewChip, chipStyle).size.width +
+                with(density) { (ENTRY_CHIP_PADDING * 2).roundToPx() }
+            val textWidth = (constraints.maxWidth - chipWidth - with(density) { ENTRY_FIXED_WIDTH.roundToPx() }).coerceAtLeast(0)
+            val limits = Constraints(maxWidth = textWidth)
+            textMeasurer.measure(title, titleStyle, constraints = limits).lineCount > 1 ||
+                textMeasurer.measure(description, descriptionStyle, constraints = limits).lineCount > 2
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -317,17 +323,14 @@ private fun InfoEntryCard(
                     fontSize = 12.sp,
                     color = AppColors.textSecondary(isDark)
                 )
-            }
-            if (previewChip != null) {
-                Spacer(Modifier.width(8.dp))
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(tint.copy(alpha = 0.1f))
-                        .padding(horizontal = 7.dp, vertical = 2.5.dp)
-                ) {
-                    Text(text = previewChip, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = tint)
+                if (previewChip != null && chipBelow) {
+                    Spacer(Modifier.height(6.dp))
+                    EntryChip(previewChip, tint)
                 }
+            }
+            if (previewChip != null && !chipBelow) {
+                Spacer(Modifier.width(8.dp))
+                EntryChip(previewChip, tint)
             }
             Spacer(Modifier.width(8.dp))
             Icon(
@@ -337,5 +340,18 @@ private fun InfoEntryCard(
                 modifier = Modifier.size(18.dp)
             )
         }
+        }
+    }
+}
+
+@Composable
+private fun EntryChip(text: String, tint: Color) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(tint.copy(alpha = 0.1f))
+            .padding(horizontal = ENTRY_CHIP_PADDING, vertical = 2.5.dp)
+    ) {
+        Text(text = text, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = tint)
     }
 }

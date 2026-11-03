@@ -4,13 +4,14 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.vincenthzr.locationspoofer.ui.theme.isAppInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Extension
-import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Map
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,6 +21,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +42,7 @@ import com.vincenthzr.locationspoofer.ui.components.ImportExportSelectionDialog
 import com.vincenthzr.locationspoofer.data.model.ImportExportCounts
 import com.vincenthzr.locationspoofer.data.model.ImportExportSelection
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
+import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
@@ -51,12 +56,10 @@ fun FeaturesTab(
     viewModel: MainViewModel,
     uiState: AppState,
     tabBarHeight: Dp = 90.dp,
-    onNavigateToCoordinate: () -> Unit,
-    onNavigateToScanner: () -> Unit,
-    onNavigateToManageData: () -> Unit,
-    onNavigateToSystemHookApps: () -> Unit
+    onNavigateToEnvData: () -> Unit,
+    onNavigateToSimulation: () -> Unit
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = isAppInDarkTheme()
     val context = LocalContext.current
 
     // 导出：先让用户选内容，再拉起系统选择器（SAF 必须在拉起前就知道要写什么）
@@ -147,37 +150,6 @@ fun FeaturesTab(
             .background(AppColors.background(isDark))
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Row(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 18.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(RoundedCornerShape(13.dp))
-                        .background(AccentBlue.copy(alpha = 0.14f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Rounded.Extension, null, tint = AccentBlue)
-                }
-                Spacer(Modifier.width(12.dp))
-                Column {
-                    Text(
-                        text = stringResource(R.string.features_tab_title),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = stringResource(R.string.features_tab_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                    )
-                }
-            }
-
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -185,63 +157,67 @@ fun FeaturesTab(
                 contentPadding = PaddingValues(bottom = tabBarHeight + 24.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // 免 Root 模式下哪些功能不生效
-                if (uiState.isMockMode) {
-                    item {
-                        Row(
+                // 顶部和设置页同样的居中样式、同样的高度，切换标签时卡片不会上下跳
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .statusBarsPadding()
+                            .padding(top = 24.dp, bottom = 10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(AccentOrange.copy(alpha = 0.1f))
-                                .padding(horizontal = 14.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                                .size(72.dp)
+                                .shadow(elevation = 6.dp, shape = RoundedCornerShape(18.dp), clip = false)
+                                .clip(RoundedCornerShape(18.dp))
+                                .background(Color.White),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Rounded.Info, contentDescription = null, tint = AccentOrange, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(10.dp))
-                            Text(
-                                text = stringResource(R.string.features_mock_mode_notice),
-                                fontSize = 12.5.sp,
-                                color = AccentOrange
-                            )
+                            Icon(Icons.Rounded.Extension, null, tint = AccentBlue, modifier = Modifier.size(40.dp))
                         }
+                        Spacer(Modifier.height(14.dp))
+                        Text(
+                            text = stringResource(R.string.features_tab_title),
+                            fontSize = 20.sp,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = stringResource(R.string.features_tab_desc),
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 20.dp)
+                        )
                     }
                 }
 
-                // 1. 采集本地数据
                 item {
-                    ScannerMapCard(
-                        uiState = uiState,
+                    InfoEntryCard(
+                        icon = Icons.Rounded.Map,
+                        tint = AccentGreen,
+                        title = stringResource(R.string.env_data_title),
+                        description = stringResource(R.string.env_data_desc),
+                        previewChip = if (uiState.isContinuousScanning) stringResource(R.string.env_data_collecting) else null,
                         isDark = isDark,
-                        onClick = onNavigateToScanner
+                        onClick = onNavigateToEnvData
                     )
                 }
 
-                // 2. 管理本地数据
                 item {
-                    ManageDataCard(
+                    InfoEntryCard(
+                        icon = Icons.Rounded.Tune,
+                        tint = AccentOrange,
+                        title = stringResource(R.string.simulation_settings_title),
+                        description = stringResource(R.string.simulation_settings_desc),
+                        previewChip = currentRealismLevelName(uiState),
                         isDark = isDark,
-                        onClick = onNavigateToManageData
+                        onClick = onNavigateToSimulation
                     )
                 }
 
-                // 3. 配置应用坐标系
-                item {
-                    AppCoordinateConfigCard(
-                        isDark = isDark,
-                        onClick = onNavigateToCoordinate
-                    )
-                }
-
-                // 4. 系统级模拟（所有应用 / 指定应用）
-                item {
-                    SystemHookAppsConfigCard(
-                        uiState = uiState,
-                        isDark = isDark,
-                        onClick = onNavigateToSystemHookApps
-                    )
-                }
-
-                // 5. 导入与导出数据
                 item {
                     ImportExportDataCard(
                         isDark = isDark,

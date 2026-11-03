@@ -1,9 +1,8 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.vincenthzr.locationspoofer.ui.theme.isAppInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -68,9 +67,7 @@ fun SystemHookAppsScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf(SystemHookFilterTab.All) }
-    val isDark = isSystemInDarkTheme()
-
-    BackHandler(onBack = onBack)
+    val isDark = isAppInDarkTheme()
 
     LaunchedEffect(Unit) {
         viewModel.loadInstalledAppsForSystemHook()

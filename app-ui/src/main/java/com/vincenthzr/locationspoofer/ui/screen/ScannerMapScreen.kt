@@ -1,6 +1,5 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -53,8 +52,6 @@ fun ScannerMapScreen(
     isDark: Boolean,
     onClose: () -> Unit
 ) {
-    BackHandler(onBack = onClose)
-
     val context = LocalContext.current
     var mapController by remember { mutableStateOf<AppMapController?>(null) }
     var showMapTypeDialog by remember { mutableStateOf(false) }

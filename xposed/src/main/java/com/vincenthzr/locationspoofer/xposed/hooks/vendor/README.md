@@ -39,7 +39,7 @@
    - `classCandidates(component)`：该系统上的实现类名，`VendorRegistry` 会自动在后面接上 AOSP 基线候选；
    - `removedBaseExemptPackages()`：通用豁免名单里要改为照常模拟的包名（例如原生系统上的 GMS）。
 3. 在 `VendorRegistry.ALL` 里注册（`AospVendor` 保持在最后），并更新 `VendorRegistryTest`。
-4. 真机验证：装好后重启，打开 App"系统适配 → Hook 运行状态"，确认每个组件都是"已挂载"。
+4. 真机验证：装好后重启，打开 App"运行模式与适配 → Hook 运行状态"，确认每个组件都是"已挂载"。
 5. 在 `ADAPTATION_PROGRESS.md` 登记结果；"按系统"表格第一列要包含 `RomFamily.progressKeywords` 里的关键字，
    App 才能在"本机状态"里查到这一行。
 
@@ -57,7 +57,7 @@
 ## Hook 运行状态报告
 
 system_server / 电话 / 蓝牙三个进程各自把运行状态写成一份 JSON（路径见 `HookStatusFiles`），
-App 通过 root 读取，显示在"系统适配 → Hook 运行状态"页：
+App 通过 root 读取，显示在"运行模式与适配 → Hook 运行状态"页：
 
 - 命中的适配器；
 - 每个组件：在哪一层找到了哪个类（`classLoader` / `thread:…` / `ServiceManager[…]` / `LocalServices` / `apex:…` 等），

@@ -60,7 +60,7 @@
 
 ### 1. 多地图引擎与坐标系适配
 * **三引擎自由切换**：集成高德 3D 地图 (AMap)、百度地图 (BaiduMap) 与 Google Maps，满足境内外不同场景下的路网检索与 POI 选点需求。
-* **地图 Key 自己填**：不内置任何高德、百度、谷歌 Key，在“信息 → 地图配置”里填入自己申请的 Key，页面顶部可以直接复制包名和签名 SHA1。“自动选择”按已填的 Key 决定用高德还是百度。
+* **地图 Key 自己填**：不内置任何高德、百度、谷歌 Key，在“设置 → 地图配置”里填入自己申请的 Key，页面顶部可以直接复制包名和签名 SHA1。“自动选择”按已填的 Key 决定用高德还是百度。
 * **路线规划**：高德、百度、谷歌（Routes API）都可以规划真实道路路线，支持步行和驾车。软件里填的谷歌 Key 用于路线规划和 Places 搜索；谷歌地图本身的显示需要在编译时通过 `GOOGLE_MAPS_API_KEY` 写入 Key。
 * **智能坐标系自适应（Smart Auto）**：
   * 系统原生接口统一输出标准 `WGS-84` 物理坐标与卫星数据；
@@ -110,7 +110,7 @@
   * 拦截 `WifiManager.getScanResults()`、`getConnectionInfo()`、`getConfiguredNetworks()`、`getDhcpInfo()`；
   * 拦截 `TelephonyManager.getAllCellInfo()`、`getCellLocation()`、`getNetworkOperator()`、`getServiceState()`、`getSignalStrength()`、`PhoneStateListener`、`TelephonyCallback`；
   * 根据 BSSID 前缀（OUI）识别 Wi-Fi 设备厂商（TP-Link、Huawei、Xiaomi、Cisco 等）。
-* **云端数据导入 (WiGLE & OpenCellID)**：在「信息 → 环境数据源 Token」填写 Token 后，可在线拉取指定坐标周边的真实 Wi-Fi 与基站，自动入库并离线复用。
+* **云端数据导入 (WiGLE & OpenCellID)**：在「功能 → 环境数据 → 环境数据源 Token」填写 Token 后，可在线拉取指定坐标周边的真实 Wi-Fi 与基站，自动入库并离线复用。
   * WiGLE：填账户页（Account → Show my token）的 **Encoded for use**；单独的 API 名或 32 位 API Token 都无法认证；
   * OpenCellID：填账户页的 API Key（`pk.` 开头）；
   * 点击保存会联网检测并显示每个 Token 是否有效；
@@ -192,13 +192,13 @@
 > `ConfigManager` 使用 `XposedService.getRemotePreferences()` 发布完整 JSON 快照；UTF-8 配置超过 128 KiB 时先写入框架管理的独立远程文件，再原子发布文件指针，避免大配置占满 Binder 事务。无需修改 SELinux 策略或向公共临时目录写配置。
 > Hook 在模块加载时获取初始快照并注册配置变化监听，由后台线程解码、归一化后替换内存缓存；Hook 调用只读缓存。后台每秒检查框架偏好的内存快照以重试启动时的失败，路线派发和服务发现仍由独立定时器执行。
 > App 私有偏好保存最新期望状态，发布失败自动重试，框架重连后重新发布；停止或暂停请求不会被较早的活动配置覆盖。新通道发布成功后会清理旧配置、探针及脚本。框架仍负责配置持久化，此方案并非完全不落盘。
-> 需要框架实现远程配置能力。可在“系统适配 → Hook 运行状态”检查配置来源为 `libxposed:remote-preferences` 或 `libxposed:remote-file`，并核对各进程的发布时间。
+> 需要框架实现远程配置能力。可在“运行模式与适配 → Hook 运行状态”检查配置来源为 `libxposed:remote-preferences` 或 `libxposed:remote-file`，并核对各进程的发布时间。
 
 ### 系统适配
 
 本软件直接 Hook 系统服务，不同厂商 / 系统版本的内部实现不一样，需要逐个适配：
 
-* [ADAPTATION_PROGRESS.md](ADAPTATION_PROGRESS.md)：各系统、机型的实机验证进度（App 内"系统适配 → 完整适配进度"显示的就是这份文件）；
+* [ADAPTATION_PROGRESS.md](ADAPTATION_PROGRESS.md)：各系统、机型的实机验证进度（App 内"运行模式与适配 → 完整适配进度"显示的就是这份文件）；
 * [vendor/README.md](xposed/src/main/java/com/vincenthzr/locationspoofer/xposed/hooks/vendor/README.md)：适配框架说明与**新增一个系统的完整检查清单**；
 * [xposed/ADAPTATION_GUIDE.md](xposed/ADAPTATION_GUIDE.md)：如何在真机上定位系统内部类与方法、如何根据 App 内"Hook 运行状态"页排查适配问题。
 
@@ -240,7 +240,7 @@ git clone https://github.com/Lili679280/LocationSpoofer.git
 > 而 Android 的"网络定位"和"融合定位"都由它计算——所以名单外的应用如果向 Google 要位置，拿到的仍是模拟位置。
 
 ### 免 Root 模式
-LSPosed 模块没有生效时，软件自动使用免 Root 模式，通过系统开发者选项里的「模拟位置」接口工作；也可以在「信息 → 运行模式」里强制使用。
+LSPosed 模块没有生效时，软件自动使用免 Root 模式，通过系统开发者选项里的「模拟位置」接口工作；也可以在「设置 → 运行模式与适配」里强制使用。
 
 1. 打开开发者选项（设置 → 关于手机，连续点「版本号」7 次）。
 2. 在开发者选项里点「选择模拟位置信息应用」，选择 LocationSpoofer。

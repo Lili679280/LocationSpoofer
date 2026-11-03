@@ -1,10 +1,10 @@
 package com.vincenthzr.locationspoofer.ui.screen.settings
 
+import android.content.Context
 import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.vincenthzr.locationspoofer.ui.theme.isAppInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -37,7 +37,7 @@ import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.utils.BackgroundPower
 import com.vincenthzr.locationspoofer.utils.SpoofMode
 import com.vincenthzr.locationspoofer.viewmodel.openDeveloperOptions
-import com.vincenthzr.locationspoofer.viewmodel.setDebugDumpSystemServices
+import com.vincenthzr.locationspoofer.viewmodel.setForceMockMode
 import org.koin.compose.koinInject
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
@@ -50,28 +50,40 @@ import com.vincenthzr.locationspoofer.viewmodel.dismissRestartHookedAppsDialog
 import com.vincenthzr.locationspoofer.viewmodel.dismissRootSetupTestResult
 import com.vincenthzr.locationspoofer.viewmodel.requestRestartHookedApps
 import com.vincenthzr.locationspoofer.viewmodel.testRootSetup
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 
-@Composable
-fun SystemAdaptationScreen(
-    viewModel: MainViewModel,
-    uiState: AppState,
-    isDark: Boolean = isSystemInDarkTheme(),
-    onClose: () -> Unit
+/** 适配进度文档和 Hook 运行状态，下一级页面也要用，所以放在页面外面 */
+@Stable
+class AdaptationState(
+    context: Context,
+    private val hookStatusRepository: HookStatusRepository,
+    private val scope: CoroutineScope
 ) {
-    val context = LocalContext.current
-    val source = remember { AdaptationProgressSource(context) }
-    var document by remember { mutableStateOf(source.local()) }
-    var loading by remember { mutableStateOf(false) }
-    var showFullProgress by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
+    // 主界面一启动就创建了这个对象，文档等第一次打开页面时才读
+    private val source by lazy { AdaptationProgressSource(context) }
+    private val bundledDocument by lazy { source.local() }
+    private var remoteDocument by mutableStateOf<AdaptationProgressSource.Document?>(null)
+    val document: AdaptationProgressSource.Document
+        get() = remoteDocument ?: bundledDocument
+    var loading by mutableStateOf(false)
+        private set
 
     // 全局方案：各系统进程写出的 Hook 运行状态报告
-    val hookStatusRepository = koinInject<HookStatusRepository>()
-    var hookReports by remember { mutableStateOf<Map<String, HookStatusReport?>>(emptyMap()) }
-    var hookLoading by remember { mutableStateOf(false) }
-    var showHookStatus by remember { mutableStateOf(false) }
+    var hookReports by mutableStateOf<Map<String, HookStatusReport?>>(emptyMap())
+        private set
+    var hookLoading by mutableStateOf(false)
+        private set
+
+    fun refresh() {
+        if (loading) return
+        loading = true
+        scope.launch {
+            source.fetchRemote()?.let { remoteDocument = it }
+            loading = false
+        }
+    }
 
     fun refreshHookStatus() {
         if (hookLoading) return
@@ -81,42 +93,33 @@ fun SystemAdaptationScreen(
             hookLoading = false
         }
     }
+}
 
-    fun refresh() {
-        if (loading) return
-        loading = true
-        scope.launch {
-            source.fetchRemote()?.let { document = it }
-            loading = false
-        }
-    }
+@Composable
+fun rememberAdaptationState(): AdaptationState {
+    val context = LocalContext.current
+    val hookStatusRepository = koinInject<HookStatusRepository>()
+    val scope = rememberCoroutineScope()
+    return remember { AdaptationState(context.applicationContext, hookStatusRepository, scope) }
+}
+
+/** 运行模式与适配：当前模式、本机适配情况、运行检测，完整进度和 Hook 状态在下一级 */
+@Composable
+fun SystemAdaptationScreen(
+    viewModel: MainViewModel,
+    uiState: AppState,
+    state: AdaptationState,
+    isDark: Boolean = isAppInDarkTheme(),
+    onOpenHookStatus: () -> Unit,
+    onOpenFullProgress: () -> Unit,
+    onClose: () -> Unit
+) {
+    val context = LocalContext.current
+    val hookReports = state.hookReports
+    val hookLoading = state.hookLoading
     LaunchedEffect(Unit) {
-        refresh()
-        refreshHookStatus()
-    }
-
-    if (showHookStatus) {
-        HookStatusScreen(
-            reports = hookReports,
-            loading = hookLoading,
-            onRefresh = { refreshHookStatus() },
-            debugDump = uiState.debugDumpSystemServices,
-            onDebugDumpChange = { viewModel.setDebugDumpSystemServices(it) },
-            isDark = isDark,
-            onClose = { showHookStatus = false }
-        )
-        return
-    }
-
-    if (showFullProgress) {
-        AdaptationProgressScreen(
-            document = document,
-            loading = loading,
-            onRefresh = { refresh() },
-            isDark = isDark,
-            onClose = { showFullProgress = false }
-        )
-        return
+        state.refresh()
+        state.refreshHookStatus()
     }
 
     // 从开发者选项回来时重新检查是否已被选为模拟位置信息应用
@@ -129,8 +132,6 @@ fun SystemAdaptationScreen(
     }
     val hasMockPermission = remember(resumeCount) { SpoofMode.hasMockLocationPermission(context) }
 
-    BackHandler(onBack = onClose)
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -142,8 +143,8 @@ fun SystemAdaptationScreen(
                 .statusBarsPadding()
         ) {
             SettingsPageHeader(
-                title = stringResource(R.string.system_adaptation_title),
-                subtitle = null,
+                title = stringResource(R.string.run_mode_title),
+                subtitle = stringResource(R.string.run_mode_desc),
                 isDark = isDark,
                 onBack = onClose
             )
@@ -156,7 +157,48 @@ fun SystemAdaptationScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                DeviceAdaptationCard(document.markdown)
+                // 当前模式、原因和强制免 Root
+                MiuixCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 18.dp, insideMargin = PaddingValues(16.dp)) {
+                    Text(
+                        text = stringResource(if (uiState.isMockMode) R.string.run_mode_current_mock else R.string.run_mode_current_root),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (uiState.isMockMode) AccentOrange else AccentGreen
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = stringResource(
+                            when {
+                                !uiState.isMockMode -> R.string.run_mode_reason_root
+                                uiState.forceMockMode -> R.string.run_mode_reason_forced
+                                else -> R.string.run_mode_reason_auto
+                            }
+                        ),
+                        fontSize = 13.sp,
+                        color = AppColors.textSecondary(isDark)
+                    )
+                    Spacer(Modifier.height(14.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.run_mode_force_title),
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = stringResource(R.string.run_mode_force_desc),
+                                fontSize = 11.5.sp,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                            )
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Switch(checked = uiState.forceMockMode, onCheckedChange = { viewModel.setForceMockMode(it) })
+                    }
+                }
+
+                DeviceAdaptationCard(state.document.markdown)
 
                 // 运行检测：原"Root 方案"页里真正有用的两个操作搬到这里（Root 方案选择本身不影响任何功能，已删除）
                 MiuixCard(
@@ -194,9 +236,12 @@ fun SystemAdaptationScreen(
                         // 免 Root 模式没有 Root 和 Hook 可测，只看它自己依赖的两项系统设置
                         CheckActionRow(
                             title = stringResource(R.string.mock_permission_title),
-                            description = stringResource(
-                                if (hasMockPermission) R.string.mock_permission_granted else R.string.mock_permission_missing
-                            ),
+                            // 没选的时候直接给出步骤
+                            description = if (hasMockPermission) {
+                                stringResource(R.string.mock_permission_granted)
+                            } else {
+                                stringResource(R.string.mock_permission_missing) + "\n" + stringResource(R.string.mock_permission_steps)
+                            },
                             running = false,
                             tint = if (hasMockPermission) AccentGreen else AccentOrange,
                             isDark = isDark,
@@ -254,13 +299,31 @@ fun SystemAdaptationScreen(
                             summary.first == summary.second -> AccentGreen
                             else -> AccentOrange
                         },
-                        onClick = { showHookStatus = true }
+                        onClick = onOpenHookStatus
                     )
+                }
+
+                if (uiState.isMockMode) {
+                    MiuixCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 18.dp, insideMargin = PaddingValues(16.dp)) {
+                        Text(
+                            text = stringResource(R.string.run_mode_limits_title),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.run_mode_limits),
+                            fontSize = 12.5.sp,
+                            lineHeight = 19.sp,
+                            color = AppColors.textSecondary(isDark)
+                        )
+                    }
                 }
 
                 NavigationRowCard(
                     title = stringResource(R.string.adaptation_progress_full),
-                    onClick = { showFullProgress = true }
+                    onClick = onOpenFullProgress
                 )
 
                 Spacer(Modifier.height(16.dp))

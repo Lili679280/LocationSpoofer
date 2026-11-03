@@ -1,10 +1,9 @@
 package com.vincenthzr.locationspoofer.ui.screen.settings
 
 import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.vincenthzr.locationspoofer.ui.theme.isAppInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -50,15 +49,13 @@ import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 fun MapEngineSettingsScreen(
     viewModel: MainViewModel,
     uiState: AppState,
-    isDark: Boolean = isSystemInDarkTheme(),
+    isDark: Boolean = isAppInDarkTheme(),
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
     var localAmapApiKey by remember(uiState.amapApiKey) { mutableStateOf(uiState.amapApiKey) }
     var localBaiduApiKey by remember(uiState.baiduApiKey) { mutableStateOf(uiState.baiduApiKey) }
     var localGoogleApiKey by remember(uiState.googleApiKey) { mutableStateOf(uiState.googleApiKey) }
-
-    BackHandler(onBack = onClose)
 
     Box(
         modifier = Modifier

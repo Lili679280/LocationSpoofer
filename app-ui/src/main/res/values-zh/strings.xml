@@ -27,6 +27,14 @@
     <string name="theme_page_scale_desc">100% 是第一次打开软件时按屏幕自动适配的大小，可以随意调大调小；地图内容不变</string>
     <string name="theme_predictive_back_title">预测性返回</string>
     <string name="theme_predictive_back_desc">从屏幕边缘侧滑时，页面跟手缩小并露出上一页</string>
+    <string name="env_data_title">环境数据</string>
+    <string name="env_data_desc">采集、管理本地数据和数据源 Token</string>
+    <string name="env_data_collecting">采集中</string>
+    <string name="simulation_settings_title">模拟设置</string>
+    <string name="simulation_settings_desc">运动真实度、模拟范围和应用坐标系</string>
+    <string name="simulation_settings_mock_notice">免 Root 模式：按应用模拟、应用坐标系，以及 Wi-Fi、基站、蓝牙模拟需要 Root 模式</string>
+    <string name="appearance_language_title">外观与语言</string>
+    <string name="appearance_language_desc">主题和界面语言</string>
     <string name="back">返回</string>
     <string name="undo">撤销</string>
     <string name="finish_selecting">结束选点</string>
@@ -78,7 +86,6 @@
     <string name="gait_failed_too_few_strides">有效的步伐太少，请走得更平稳一些再试</string>
     <string name="keep_last_map_position_title">停留在上次位置</string>
     <string name="keep_last_map_position_desc">打开 App 时地图停留在上次选定的位置，不再自动跳到真实位置</string>
-    <string name="system_adaptation_title">系统适配</string>
     <string name="adaptation_progress_full">完整适配进度</string>
     <string name="config_write_failed">配置暂未发布成功，请检查模块启用状态和框架连接；最新设置会自动重试</string>
     <string name="hook_status_title">Hook 运行状态</string>
@@ -141,7 +148,6 @@
     <string name="ignore_this_version">忽略此版本</string>
     <string name="app_sha1">应用 SHA1 签名</string>
     <string name="map_config">地图配置</string>
-    <string name="system_adaptation_desc">本机适配情况与运行检测</string>
     <string name="map_config_desc">地图引擎、API Key 与申请说明</string>
     <string name="custom_amap_key">高德地图 API Key</string>
     <string name="custom_amap_key_hint">输入您申请的高德地图 API Key</string>
@@ -239,7 +245,7 @@
     <string name="tab_location">定位</string>
     <string name="tab_route">路线</string>
     <string name="tab_features">功能</string>
-    <string name="tab_info">信息</string>
+    <string name="tab_info">设置</string>
     <string name="features_tab_title">功能</string>
     <string name="features_tab_desc">管理工具与本地环境数据</string>
     <string name="app_slogan">这是一个模拟定位软件，仅此而已</string>
@@ -351,8 +357,8 @@
     <string name="reading_signature">正在读取签名...</string>
     <string name="env_datasource_tokens_title">环境数据源 Token</string>
     <string name="env_datasource_tokens_desc">用于在线检索周边基站与 Wi-Fi 信号</string>
-    <string name="run_mode_title">运行模式</string>
-    <string name="run_mode_desc">Root（LSPosed）或免 Root（系统模拟位置）</string>
+    <string name="run_mode_title">运行模式与适配</string>
+    <string name="run_mode_desc">Root 或免 Root、权限检查和适配进度</string>
     <string name="run_mode_chip_root">Root</string>
     <string name="run_mode_chip_mock">免 Root</string>
     <string name="run_mode_current_root">当前：Root 模式</string>
@@ -378,7 +384,6 @@
     <string name="mock_setup_dialog_title">需要设置模拟位置</string>
     <string name="mock_setup_dialog_text">免 Root 模式通过系统的模拟位置接口工作，需要先在开发者选项里把本软件选为「模拟位置信息应用」。</string>
     <string name="spoofing_options_desc_mock">免 Root 模式只模拟经纬度和海拔；Wi-Fi、基站等环境数据需要 Root 模式。</string>
-    <string name="features_mock_mode_notice">免 Root 模式：配置应用坐标系、按应用模拟，以及 Wi-Fi、基站、蓝牙模拟需要 Root 模式；采集和管理数据照常可用</string>
     <string name="map_layers">地图图层</string>
     <string name="local_collected_datasource">本地采集数据源</string>
     <string name="layers_and_engine_title">图层与引擎设置</string>

@@ -1,10 +1,9 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.vincenthzr.locationspoofer.ui.theme.isAppInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -67,9 +66,7 @@ fun AppCoordinateScreen(
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf(CoordinateFilterTab.All) }
     var selectedApp by remember { mutableStateOf<AppInfoItem?>(null) }
-    val isDark = isSystemInDarkTheme()
-
-    BackHandler(onBack = onBack)
+    val isDark = isAppInDarkTheme()
 
     // 统计已自定义坐标系的应用数量
     val customConfiguredCount = remember(uiState.hookedApps, uiState.appCoordinateSystems) {

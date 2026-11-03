@@ -1,8 +1,7 @@
 package com.vincenthzr.locationspoofer.ui.screen.settings
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.vincenthzr.locationspoofer.ui.theme.isAppInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -27,17 +26,15 @@ import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.vendor.VendorProfile
 import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 
-/** 系统适配页的二级页面：完整的适配进度文档 */
+/** 运行模式与适配的下一级页面：完整的适配进度文档 */
 @Composable
 fun AdaptationProgressScreen(
     document: AdaptationProgressSource.Document,
     loading: Boolean,
     onRefresh: () -> Unit,
-    isDark: Boolean = isSystemInDarkTheme(),
+    isDark: Boolean = isAppInDarkTheme(),
     onClose: () -> Unit
 ) {
-    BackHandler(onBack = onClose)
-
     Box(
         modifier = Modifier
             .fillMaxSize()

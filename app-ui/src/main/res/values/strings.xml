@@ -23,6 +23,14 @@
     <string name="theme_page_scale_desc">100% is the size fitted to this screen when the app was first opened. Adjust it freely; the map content stays the same</string>
     <string name="theme_predictive_back_title">Predictive back</string>
     <string name="theme_predictive_back_desc">When you swipe from the screen edge, the page shrinks with your finger and shows the previous page</string>
+    <string name="env_data_title">Environment data</string>
+    <string name="env_data_desc">Collect and manage local data, and data source tokens</string>
+    <string name="env_data_collecting">Collecting</string>
+    <string name="simulation_settings_title">Spoofing settings</string>
+    <string name="simulation_settings_desc">Motion realism, target apps and app coordinate systems</string>
+    <string name="simulation_settings_mock_notice">No-root mode: per-app spoofing, app coordinate systems, and Wi-Fi, cell and Bluetooth spoofing need Root mode</string>
+    <string name="appearance_language_title">Appearance and language</string>
+    <string name="appearance_language_desc">Theme and display language</string>
     <string name="back">Back</string>
     <string name="undo">Undo</string>
     <string name="finish_selecting">Finish Selecting</string>
@@ -74,7 +82,6 @@
     <string name="gait_failed_too_few_strides">Too few valid strides, try walking more steadily</string>
     <string name="keep_last_map_position_title">Keep Last Position</string>
     <string name="keep_last_map_position_desc">When the app opens, the map stays at the last selected position instead of jumping to your real location</string>
-    <string name="system_adaptation_title">System Adaptation</string>
     <string name="adaptation_progress_full">Full adaptation progress</string>
     <string name="config_write_failed">Configuration could not be published. Check the module and framework connection; the latest settings will retry automatically</string>
     <string name="hook_status_title">Hook Status</string>
@@ -137,7 +144,6 @@
     <string name="ignore_this_version">Ignore this version</string>
     <string name="app_sha1">App SHA1 Signature</string>
     <string name="map_config">Map Configuration</string>
-    <string name="system_adaptation_desc">Device adaptation status and runtime checks</string>
     <string name="map_config_desc">Map engine, API keys and how to get them</string>
     <string name="custom_amap_key">AMap API Key</string>
     <string name="custom_amap_key_hint">Enter your AMap API Key</string>
@@ -240,7 +246,7 @@
     <string name="tab_location">Location</string>
     <string name="tab_route">Route</string>
     <string name="tab_features">Features</string>
-    <string name="tab_info">Info</string>
+    <string name="tab_info">Settings</string>
     <string name="features_tab_title">Features</string>
     <string name="features_tab_desc">Management tools &amp; local environment data</string>
     <string name="app_slogan">A location spoofing tool, and that\'s it.</string>
@@ -352,8 +358,8 @@
     <string name="reading_signature">Reading signature...</string>
     <string name="env_datasource_tokens_title">Environment Data Source Tokens</string>
     <string name="env_datasource_tokens_desc">Used for online retrieval of nearby cell tower and Wi-Fi signals</string>
-    <string name="run_mode_title">Run Mode</string>
-    <string name="run_mode_desc">Root (LSPosed) or no-root (system mock location)</string>
+    <string name="run_mode_title">Run mode and adaptation</string>
+    <string name="run_mode_desc">Root or no-root, permission checks and adaptation progress</string>
     <string name="run_mode_chip_root">Root</string>
     <string name="run_mode_chip_mock">No root</string>
     <string name="run_mode_current_root">Current: Root mode</string>
@@ -379,7 +385,6 @@
     <string name="mock_setup_dialog_title">Set up mock location</string>
     <string name="mock_setup_dialog_text">No-root mode works through the system mock location API. First select this app as the mock location app in Developer options.</string>
     <string name="spoofing_options_desc_mock">No-root mode only spoofs coordinates and altitude; Wi-Fi, cell and other environment data need Root mode.</string>
-    <string name="features_mock_mode_notice">No-root mode: per-app coordinate systems, per-app spoofing and Wi-Fi, cell and Bluetooth spoofing need Root mode; collecting and managing data still work</string>
     <string name="map_layers">Map Layers</string>
     <string name="local_collected_datasource">Local Collected Data</string>
     <string name="layers_and_engine_title">Layers &amp; Map Engine</string>

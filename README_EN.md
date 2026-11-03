@@ -59,7 +59,7 @@ Powered by **KernelSU / APatch / Magisk** for root privileges and **LSPosed (lib
 
 ### 1. Multi-Map Engines & Coordinate Adaptation
 * **Triple Engine Support**: Natively integrates AMap 3D, Baidu Maps, and Google Maps for flexible worldwide POI search and road-network routing.
-* **Bring your own map keys**: No AMap, Baidu or Google key is built in. Enter your own keys under "Info → Map settings"; the package name and signing SHA1 can be copied from the top of that page. "Auto" picks AMap or Baidu based on which keys are filled in.
+* **Bring your own map keys**: No AMap, Baidu or Google key is built in. Enter your own keys under "Settings → Map settings"; the package name and signing SHA1 can be copied from the top of that page. "Auto" picks AMap or Baidu based on which keys are filled in.
 * **Route planning**: AMap, Baidu and Google (Routes API) can all plan real road routes, for walking or driving. The Google key entered in the app is used for route planning and Places search; Google Maps rendering itself needs a key written in at build time via `GOOGLE_MAPS_API_KEY`.
 * **Smart Automatic Coordinate Adaptation (Smart Auto)**:
   * Native Android framework APIs consistently output standard `WGS-84` physical coordinates and satellite metadata;
@@ -106,7 +106,7 @@ Real GPS receivers naturally output coordinates with Gaussian white noise caused
   * Hooks `WifiManager.getScanResults()`, `getConnectionInfo()`, `getConfiguredNetworks()`, `getDhcpInfo()`;
   * Hooks `TelephonyManager.getAllCellInfo()`, `getCellLocation()`, `getNetworkOperator()`, `getServiceState()`, `getSignalStrength()`, `PhoneStateListener`, `TelephonyCallback`;
   * Identifies Wi-Fi vendors (TP-Link, Huawei, Xiaomi, Cisco, etc.) from the BSSID prefix (OUI).
-* **Cloud WiGLE & OpenCellID Integration**: After entering tokens under "Info → Environment Data Source Tokens", pulls real Wi-Fi and cell tower records around a coordinate and stores them locally for offline replay.
+* **Cloud WiGLE & OpenCellID Integration**: After entering tokens under "Features → Environment data → Environment Data Source Tokens", pulls real Wi-Fi and cell tower records around a coordinate and stores them locally for offline replay.
   * WiGLE: enter **Encoded for use** from your account page (Account → Show my token); the API name or the 32-character API token on its own cannot authenticate;
   * OpenCellID: enter the API key from your account page (starts with `pk.`);
   * Saving checks each token online and shows whether it is valid;
@@ -235,7 +235,7 @@ git clone https://github.com/Lili679280/LocationSpoofer.git
 > and it computes Android's "network" and "fused" locations — so an app outside the list that asks Google for its location still gets the spoofed position.
 
 ### No-root mode
-When the LSPosed module is not active, the app automatically uses no-root mode, which works through the system mock location API in Developer options. You can also force it under "Info → Run Mode".
+When the LSPosed module is not active, the app automatically uses no-root mode, which works through the system mock location API in Developer options. You can also force it under "Settings → Run mode and adaptation".
 
 1. Enable Developer options (Settings → About phone, tap "Build number" 7 times).
 2. In Developer options, tap "Select mock location app" and choose LocationSpoofer.

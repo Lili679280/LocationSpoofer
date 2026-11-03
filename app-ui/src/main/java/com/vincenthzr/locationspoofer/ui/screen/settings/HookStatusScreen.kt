@@ -1,9 +1,8 @@
 package com.vincenthzr.locationspoofer.ui.screen.settings
 
-import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.vincenthzr.locationspoofer.ui.theme.isAppInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -47,7 +46,7 @@ internal fun hookStatusSummary(reports: Map<String, HookStatusReport?>): Pair<In
     return fresh.sumOf { it.hookedCount } to fresh.sumOf { it.components.size }
 }
 
-/** 系统适配页的二级页面：各系统进程的 Hook 运行状态 */
+/** 运行模式与适配的下一级页面：各系统进程的 Hook 运行状态 */
 @Composable
 fun HookStatusScreen(
     reports: Map<String, HookStatusReport?>,
@@ -55,10 +54,9 @@ fun HookStatusScreen(
     onRefresh: () -> Unit,
     debugDump: Boolean,
     onDebugDumpChange: (Boolean) -> Unit,
-    isDark: Boolean = isSystemInDarkTheme(),
+    isDark: Boolean = isAppInDarkTheme(),
     onClose: () -> Unit
 ) {
-    BackHandler(onBack = onClose)
     val boot = remember(reports) { bootTimeMs() }
     val vendorReport = reports.values.firstOrNull { it != null && !it.isStale(boot) }
 

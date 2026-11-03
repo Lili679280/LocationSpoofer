@@ -1,9 +1,8 @@
 package com.vincenthzr.locationspoofer.ui.screen.settings
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.vincenthzr.locationspoofer.ui.theme.isAppInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -53,11 +52,9 @@ import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 fun MotionRealismScreen(
     viewModel: MainViewModel,
     uiState: AppState,
-    isDark: Boolean = isSystemInDarkTheme(),
+    isDark: Boolean = isAppInDarkTheme(),
     onClose: () -> Unit
 ) {
-    BackHandler(onBack = onClose)
-
     // 录制时手机放进口袋，保持屏幕常亮，避免熄屏后传感器数据中断
     val recording = uiState.gaitRecording
     val keepAwake = recording is GaitRecordingState.Countdown || recording is GaitRecordingState.Recording

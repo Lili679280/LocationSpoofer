@@ -1,9 +1,8 @@
 package com.vincenthzr.locationspoofer.ui.screen.settings
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.vincenthzr.locationspoofer.ui.theme.isAppInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -45,7 +44,7 @@ import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 fun EnvTokensScreen(
     viewModel: MainViewModel,
     uiState: AppState,
-    isDark: Boolean = isSystemInDarkTheme(),
+    isDark: Boolean = isAppInDarkTheme(),
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
@@ -53,8 +52,6 @@ fun EnvTokensScreen(
     var localOpencellidToken by remember(uiState.opencellidToken) { mutableStateOf(uiState.opencellidToken) }
     // 保存后的联网检测结果，显示在保存按钮下面（Toast 最多两行，放不下两个数据源的结果）
     var tokenCheckResult by remember { mutableStateOf<String?>(null) }
-
-    BackHandler(onBack = onClose)
 
     Box(
         modifier = Modifier

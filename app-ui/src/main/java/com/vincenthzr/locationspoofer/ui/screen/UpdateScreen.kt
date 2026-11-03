@@ -1,11 +1,10 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
 import android.app.DownloadManager
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.vincenthzr.locationspoofer.ui.theme.isAppInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -47,7 +46,7 @@ import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 fun UpdateScreen(
     updateViewModel: UpdateViewModel,
     viewModel: MainViewModel,
-    isDark: Boolean = isSystemInDarkTheme(),
+    isDark: Boolean = isAppInDarkTheme(),
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -56,8 +55,6 @@ fun UpdateScreen(
     val currentVersion = BuildConfig.VERSION_NAME
     val listState = rememberLazyListState()
     val backdrop = rememberLayerBackdrop()
-
-    BackHandler(onBack = onBack)
 
     // 进入页面时自动检查一次最新版本
     LaunchedEffect(Unit) {

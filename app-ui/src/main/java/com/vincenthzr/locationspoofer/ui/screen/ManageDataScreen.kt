@@ -1,7 +1,8 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import com.vincenthzr.locationspoofer.ui.components.AlertDialog
+import com.vincenthzr.locationspoofer.ui.components.Dialog
 import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -25,7 +26,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.vincenthzr.locationspoofer.data.model.effectiveMapEngine
 import com.vincenthzr.locationspoofer.ui.R
@@ -81,8 +81,6 @@ fun ManageDataScreen(
         uiState.savedLocations.filter { it.sourceLocationId == null }
             .mapTo(HashSet()) { it.lat to it.lng }
     }
-
-    BackHandler(onBack = onClose)
 
     LaunchedEffect(mapController, uiState.mapType) {
         mapController?.setMapType(uiState.mapType)
@@ -483,7 +481,7 @@ fun ManageDataScreen(
             })
     }
     deletingRoute?.let { route ->
-        androidx.compose.material3.AlertDialog(
+        AlertDialog(
             onDismissRequest = { deletingRoute = null },
             title = { Text(stringResource(R.string.collection_route_delete_title)) },
             text = { Text(stringResource(R.string.collection_route_delete_message, route.name)) },
