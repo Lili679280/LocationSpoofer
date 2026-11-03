@@ -1,5 +1,7 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import com.vincenthzr.locationspoofer.ui.components.AlertDialog
+import com.vincenthzr.locationspoofer.ui.components.Dialog
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,7 +40,7 @@ fun CustomCoordinateDialog(
     val currentContext = androidx.compose.ui.platform.LocalContext.current
     val currentConfiguration = androidx.compose.ui.platform.LocalConfiguration.current
 
-    androidx.compose.material3.AlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
         modifier = Modifier.imePadding(),
         containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
@@ -164,23 +166,3 @@ fun CustomCoordinateDialog(
     )
 }
 
-@Composable
-fun LocalizedDialog(
-    onDismissRequest: () -> Unit,
-    properties: androidx.compose.ui.window.DialogProperties = androidx.compose.ui.window.DialogProperties(),
-    content: @Composable () -> Unit
-) {
-    val currentContext = androidx.compose.ui.platform.LocalContext.current
-    val currentConfiguration = androidx.compose.ui.platform.LocalConfiguration.current
-    androidx.compose.ui.window.Dialog(
-        onDismissRequest = onDismissRequest,
-        properties = properties
-    ) {
-        androidx.compose.runtime.CompositionLocalProvider(
-            androidx.compose.ui.platform.LocalContext provides currentContext,
-            androidx.compose.ui.platform.LocalConfiguration provides currentConfiguration
-        ) {
-            content()
-        }
-    }
-}

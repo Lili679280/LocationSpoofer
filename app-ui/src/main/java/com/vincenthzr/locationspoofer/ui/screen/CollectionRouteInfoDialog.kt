@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import com.vincenthzr.locationspoofer.ui.components.AlertDialog
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*

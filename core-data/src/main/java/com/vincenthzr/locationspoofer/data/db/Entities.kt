@@ -272,7 +272,14 @@ data class ExportedSettings(
     val keepLastMapPosition: Boolean? = null,
     val stayAtRouteStopPoint: Boolean? = null,
     val systemHookGlobalMode: Boolean? = null,
-    val systemHookPackages: List<String>? = null
+    val systemHookPackages: List<String>? = null,
+    // 主题设置，旧文件里没有，为 null 时导入保持本机原值
+    val themeMode: Int? = null,
+    val floatingBottomBar: Boolean? = null,
+    val liquidGlass: Boolean? = null,
+    val liquidGlassStrength: Float? = null,
+    val pageScale: Float? = null,
+    val predictiveBack: Boolean? = null
 )
 
 /**

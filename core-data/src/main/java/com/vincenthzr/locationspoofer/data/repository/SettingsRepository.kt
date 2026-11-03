@@ -186,6 +186,45 @@ class SettingsRepository(private val settingsManager: SettingsManager) {
             settingsManager.useGaitTemplate = value
         }
 
+    val adaptiveScale: Float
+        get() = settingsManager.adaptiveScale
+
+    var themeMode: Int
+        get() = settingsManager.themeMode
+        set(value) {
+            settingsManager.themeMode = value
+        }
+
+    var floatingBottomBar: Boolean
+        get() = settingsManager.floatingBottomBar
+        set(value) {
+            settingsManager.floatingBottomBar = value
+        }
+
+    var liquidGlass: Boolean
+        get() = settingsManager.liquidGlass
+        set(value) {
+            settingsManager.liquidGlass = value
+        }
+
+    var liquidGlassStrength: Float
+        get() = settingsManager.liquidGlassStrength
+        set(value) {
+            settingsManager.liquidGlassStrength = value
+        }
+
+    var pageScale: Float
+        get() = settingsManager.pageScale
+        set(value) {
+            settingsManager.pageScale = value
+        }
+
+    var predictiveBack: Boolean
+        get() = settingsManager.predictiveBack
+        set(value) {
+            settingsManager.predictiveBack = value
+        }
+
     var forceMockMode: Boolean
         get() = settingsManager.forceMockMode
         set(value) {

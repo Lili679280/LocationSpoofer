@@ -1,8 +1,9 @@
 package com.vincenthzr.locationspoofer.ui.screen.tabs.route
 
+import com.vincenthzr.locationspoofer.ui.components.Dialog
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.vincenthzr.locationspoofer.ui.theme.isAppInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -26,7 +27,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.RoutePoint
@@ -41,7 +41,7 @@ import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 fun SaveRouteDialog(
     routePoints: List<RoutePoint>,
     viewModel: MainViewModel,
-    isDark: Boolean = isSystemInDarkTheme(),
+    isDark: Boolean = isAppInDarkTheme(),
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current

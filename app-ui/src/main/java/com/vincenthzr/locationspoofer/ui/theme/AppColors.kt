@@ -1,13 +1,22 @@
 package com.vincenthzr.locationspoofer.ui.theme
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
+
+/** 「设置 → 外观与语言 → 主题」里选的深浅色，由 MainActivity 提供 */
+val LocalAppDarkTheme = staticCompositionLocalOf<Boolean?> { null }
+
+@Composable
+fun isAppInDarkTheme(): Boolean = LocalAppDarkTheme.current ?: isSystemInDarkTheme()
 
 // 基础主色调与中性色
 // 深色调色板

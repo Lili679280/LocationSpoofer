@@ -8,7 +8,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.vincenthzr.locationspoofer.ui.theme.isAppInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -176,9 +176,10 @@ fun AndroidFloatingBottomBar(
     backdrop: Backdrop?,
     tabsCount: Int,
     isBlurEnabled: Boolean = true,
+    glassStrength: Float = 1f,
     content: @Composable RowScope.() -> Unit
 ) {
-    val isInDark = isSystemInDarkTheme()
+    val isInDark = isAppInDarkTheme()
     val pillShape = remember { CircleShape }
     val accentColor = AccentBlue
     val surfaceContainer = MaterialTheme.colorScheme.surface
@@ -338,10 +339,10 @@ fun AndroidFloatingBottomBar(
                             shape = { pillShape },
                             effects = {
                                 vibrancy()
-                                blur(6.dp.toPx(), 6.dp.toPx())
+                                blur(6.dp.toPx() * glassStrength, 6.dp.toPx() * glassStrength)
                                 lens(
-                                    refractionHeight = 24.dp.toPx(),
-                                    refractionAmount = 24.dp.toPx(),
+                                    refractionHeight = 24.dp.toPx() * glassStrength,
+                                    refractionAmount = 24.dp.toPx() * glassStrength,
                                 )
                             },
                             highlight = { baseHighlight.copy(alpha = 0.75f) },
@@ -385,10 +386,10 @@ fun AndroidFloatingBottomBar(
                             shape = { pillShape },
                             effects = {
                                 vibrancy()
-                                blur(6.dp.toPx(), 6.dp.toPx())
+                                blur(6.dp.toPx() * glassStrength, 6.dp.toPx() * glassStrength)
                                 lens(
-                                    refractionHeight = 24.dp.toPx(),
-                                    refractionAmount = 24.dp.toPx(),
+                                    refractionHeight = 24.dp.toPx() * glassStrength,
+                                    refractionAmount = 24.dp.toPx() * glassStrength,
                                 )
                             },
                             onDrawSurface = { drawRect(containerColor) },

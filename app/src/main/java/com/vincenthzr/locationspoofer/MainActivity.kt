@@ -1,24 +1,29 @@
 package com.vincenthzr.locationspoofer
 
+import com.vincenthzr.locationspoofer.ui.components.AlertDialog
 import android.Manifest
+import android.app.UiModeManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -29,15 +34,21 @@ import com.vincenthzr.locationspoofer.ui.screen.InitializingScreen
 import com.vincenthzr.locationspoofer.ui.screen.LanguageSelectionScreen
 import com.vincenthzr.locationspoofer.ui.theme.AppColorSchemeDark
 import com.vincenthzr.locationspoofer.ui.theme.AppColorSchemeLight
+import com.vincenthzr.locationspoofer.ui.theme.LocalAppDarkTheme
 import com.vincenthzr.locationspoofer.ui.R as UiR
 import com.vincenthzr.locationspoofer.utils.BackgroundPower
 import com.vincenthzr.locationspoofer.utils.LocaleUtils
+import com.vincenthzr.locationspoofer.utils.SettingsManager
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.getSavedLanguage
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 private const val KEY_BACKGROUND_POWER_OPENED = "background_power_opened"
 private const val STATE_BACKGROUND_POWER_DISMISSED = "background_power_dismissed"
+
+// 和 enableEdgeToEdge 默认的导航栏遮罩一样
+private val LIGHT_NAV_SCRIM = Color.argb(0xE6, 0xFF, 0xFF, 0xFF)
+private val DARK_NAV_SCRIM = Color.argb(0x80, 0x1B, 0x1B, 0x1B)
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModel()
@@ -94,11 +105,30 @@ class MainActivity : ComponentActivity() {
                 LocalActivityResultRegistryOwner provides this@MainActivity
             ) {
                 val uiState by viewModel.uiState.collectAsState()
-                val isDark = isSystemInDarkTheme()
+                val systemDark = isSystemInDarkTheme()
+                val isDark = when (uiState.themeMode) {
+                    SettingsManager.THEME_MODE_LIGHT -> false
+                    SettingsManager.THEME_MODE_DARK -> true
+                    else -> systemDark
+                }
+                // 状态栏图标的深浅默认只看系统，手动选了深浅色要跟着改
+                DisposableEffect(isDark) {
+                    enableEdgeToEdge(
+                        statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { isDark },
+                        navigationBarStyle = SystemBarStyle.auto(LIGHT_NAV_SCRIM, DARK_NAV_SCRIM) { isDark }
+                    )
+                    onDispose { }
+                }
                 val colorScheme = if (isDark) AppColorSchemeDark else AppColorSchemeLight
+                // 窗口背景和系统启动画面也要和软件的深浅色一致，否则冷启动会闪一下系统的颜色
+                SideEffect { window.setBackgroundDrawable(ColorDrawable(colorScheme.background.toArgb())) }
+                LaunchedEffect(uiState.themeMode) { applyWindowNightMode(uiState.themeMode) }
                 val baseDensity = LocalDensity.current
-                val appDensity = remember(baseDensity.density, baseDensity.fontScale) {
-                    Density(baseDensity.density, baseDensity.fontScale.coerceAtMost(1.15f))
+                val appDensity = remember(baseDensity.density, baseDensity.fontScale, uiState.adaptiveScale, uiState.pageScale) {
+                    Density(
+                        baseDensity.density * uiState.adaptiveScale * uiState.pageScale,
+                        baseDensity.fontScale.coerceAtMost(1.15f)
+                    )
                 }
 
                 // 核心：在 Compose 层级内部通过 CompositionLocalProvider 动态刷新
@@ -116,7 +146,8 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalContext provides wrappedContext,
                     LocalConfiguration provides configuration,
-                    LocalDensity provides appDensity
+                    LocalDensity provides appDensity,
+                    LocalAppDarkTheme provides isDark
                 ) {
                     MaterialTheme(colorScheme = colorScheme) {
                         top.yukonga.miuix.kmp.theme.MiuixTheme(
@@ -142,6 +173,18 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    /** 让系统下次画启动画面时就用选好的深浅色。Android 12 以下没有这个接口，只能靠窗口背景 */
+    private fun applyWindowNightMode(themeMode: Int) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        getSystemService(UiModeManager::class.java)?.setApplicationNightMode(
+            when (themeMode) {
+                SettingsManager.THEME_MODE_LIGHT -> UiModeManager.MODE_NIGHT_NO
+                SettingsManager.THEME_MODE_DARK -> UiModeManager.MODE_NIGHT_YES
+                else -> UiModeManager.MODE_NIGHT_AUTO
+            }
+        )
     }
 
     private fun checkAndRequestPermissions() {

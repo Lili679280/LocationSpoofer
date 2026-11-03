@@ -440,6 +440,12 @@ internal fun MainViewModel.exportEnvironmentData(
                     satelliteCount = settingsRepository.satelliteCount,
                     mapType = settingsRepository.getMapType(),
                     mapEngine = settingsRepository.getMapEngine(),
+                    themeMode = settingsRepository.themeMode,
+                    floatingBottomBar = settingsRepository.floatingBottomBar,
+                    liquidGlass = settingsRepository.liquidGlass,
+                    liquidGlassStrength = settingsRepository.liquidGlassStrength,
+                    pageScale = settingsRepository.pageScale,
+                    predictiveBack = settingsRepository.predictiveBack,
                     realismLevel = settingsRepository.realismLevel,
                     speedFluctuationPct = settingsRepository.speedFluctuationPct,
                     restartAppsOnSpoof = settingsRepository.restartAppsOnSpoof,
@@ -633,6 +639,12 @@ internal fun MainViewModel.applyImportPackage(
                     if (s.satelliteCount.isNotBlank()) settingsRepository.satelliteCount = s.satelliteCount
                     if (s.mapType.isNotBlank()) settingsRepository.setMapType(s.mapType)
                     if (s.mapEngine.isNotBlank()) settingsRepository.setMapEngine(s.mapEngine)
+                    s.themeMode?.let { settingsRepository.themeMode = it }
+                    s.floatingBottomBar?.let { settingsRepository.floatingBottomBar = it }
+                    s.liquidGlass?.let { settingsRepository.liquidGlass = it }
+                    s.liquidGlassStrength?.let { settingsRepository.liquidGlassStrength = it }
+                    s.pageScale?.let { settingsRepository.pageScale = it }
+                    s.predictiveBack?.let { settingsRepository.predictiveBack = it }
                     s.realismLevel?.let { settingsRepository.realismLevel = it }
                     s.speedFluctuationPct?.let { settingsRepository.speedFluctuationPct = it }
                     s.restartAppsOnSpoof?.let { settingsRepository.restartAppsOnSpoof = it }
@@ -665,6 +677,12 @@ internal fun MainViewModel.applyImportPackage(
                     mockCell = settingsRepository.mockCell,
                     mockBluetooth = settingsRepository.mockBluetooth,
                     enableJitter = settingsRepository.enableJitter,
+                    themeMode = settingsRepository.themeMode,
+                    floatingBottomBar = settingsRepository.floatingBottomBar,
+                    liquidGlass = settingsRepository.liquidGlass,
+                    liquidGlassStrength = settingsRepository.liquidGlassStrength,
+                    pageScale = settingsRepository.pageScale,
+                    predictiveBack = settingsRepository.predictiveBack,
                     realismLevel = settingsRepository.realismLevel,
                     speedFluctuationPct = settingsRepository.speedFluctuationPct,
                     restartAppsOnSpoof = settingsRepository.restartAppsOnSpoof,

@@ -9,6 +9,25 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 class SettingsManager(context: Context) {
+    companion object {
+        const val THEME_MODE_SYSTEM = 0
+        const val THEME_MODE_LIGHT = 1
+        const val THEME_MODE_DARK = 2
+        const val GLASS_STRENGTH_MIN = 0.5f
+        const val GLASS_STRENGTH_MAX = 2f
+        const val PAGE_SCALE_MIN = 0.8f
+        const val PAGE_SCALE_MAX = 1.1f
+        private const val ADAPTIVE_REFERENCE_WIDTH_DP = 411f
+        private const val ADAPTIVE_MAX_PHONE_WIDTH_DP = 600
+
+        /** 把手机的逻辑宽度换算到统一宽度要乘的系数（vivo 360dp、Pixel 8 Pro 448dp）；平板不换算 */
+        fun computeAdaptiveScale(smallestWidthDp: Int): Float =
+            if (smallestWidthDp <= 0 || smallestWidthDp >= ADAPTIVE_MAX_PHONE_WIDTH_DP) 1f
+            else (smallestWidthDp / ADAPTIVE_REFERENCE_WIDTH_DP).coerceIn(0.8f, 1.2f)
+    }
+
+    private val smallestWidthDp: Int = context.resources.configuration.smallestScreenWidthDp
+
     /** 当前安装的是预览版（版本名带 -preview.N 之类的后缀）时，默认接收预览版更新 */
     private val isPrereleaseBuild: Boolean = runCatching {
         context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty().contains('-')
@@ -119,6 +138,51 @@ class SettingsManager(context: Context) {
     var forceMockMode: Boolean
         get() = prefs.getBoolean("force_mock_mode", false)
         set(value) = prefs.edit().putBoolean("force_mock_mode", value).apply()
+
+    /** 深色模式：[THEME_MODE_SYSTEM] / [THEME_MODE_LIGHT] / [THEME_MODE_DARK] */
+    var themeMode: Int
+        get() = prefs.getInt("theme_mode", THEME_MODE_SYSTEM)
+        set(value) = prefs.edit().putInt("theme_mode", value).apply()
+
+    var floatingBottomBar: Boolean
+        get() = prefs.getBoolean("floating_bottom_bar", true)
+        set(value) = prefs.edit().putBoolean("floating_bottom_bar", value).apply()
+
+    var liquidGlass: Boolean
+        get() = prefs.getBoolean("liquid_glass", true)
+        set(value) = prefs.edit().putBoolean("liquid_glass", value).apply()
+
+    /** 液态玻璃的模糊和折射倍率，1 是默认效果 */
+    var liquidGlassStrength: Float
+        get() = prefs.getFloat("liquid_glass_strength", 1f).coerceIn(GLASS_STRENGTH_MIN, GLASS_STRENGTH_MAX)
+        set(value) = prefs.edit().putFloat("liquid_glass_strength", value).apply()
+
+    var pageScale: Float
+        get() = prefs.getFloat("page_scale", 1f).coerceIn(PAGE_SCALE_MIN, PAGE_SCALE_MAX)
+        set(value) = prefs.edit().putFloat("page_scale", value).apply()
+
+    /**
+     * 界面缩放 100% 对应的系数：第一次打开软件时按屏幕算一次，之后不再变。
+     * 存的是相对系统的倍数，用户后来调系统显示大小，软件也会跟着变。设备相关，不导出
+     */
+    val adaptiveScale: Float
+        get() {
+            val saved = prefs.getFloat("adaptive_scale", 0f)
+            if (saved > 0f) return saved
+            return computeAdaptiveScale(smallestWidthDp).also { prefs.edit().putFloat("adaptive_scale", it).apply() }
+        }
+
+    fun registerChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+    }
+
+    fun unregisterChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        prefs.unregisterOnSharedPreferenceChangeListener(listener)
+    }
+
+    var predictiveBack: Boolean
+        get() = prefs.getBoolean("predictive_back", true)
+        set(value) = prefs.edit().putBoolean("predictive_back", value).apply()
 
     /** 开始模拟时是否强制重启已勾选作用域的目标 App，让它们加载当前模块并订阅框架配置 */
     var restartAppsOnSpoof: Boolean

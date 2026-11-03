@@ -114,6 +114,14 @@ data class AppState(
     /** 免 Root 模式（系统模拟位置），见 SpoofMode */
     val isMockMode: Boolean = true,
     val forceMockMode: Boolean = false,
+    /** 主题设置，见 SettingsManager */
+    val themeMode: Int = 0,
+    val floatingBottomBar: Boolean = true,
+    val liquidGlass: Boolean = true,
+    val liquidGlassStrength: Float = 1f,
+    val adaptiveScale: Float = 1f,
+    val pageScale: Float = 1f,
+    val predictiveBack: Boolean = true,
     /** 免 Root 模式下开始模拟时还没被选为"模拟位置信息应用"，弹出设置引导 */
     val showMockSetupDialog: Boolean = false,
     val longitudeInput: String = "",

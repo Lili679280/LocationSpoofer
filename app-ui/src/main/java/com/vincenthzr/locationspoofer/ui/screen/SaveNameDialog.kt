@@ -1,7 +1,8 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import com.vincenthzr.locationspoofer.ui.components.Dialog
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.vincenthzr.locationspoofer.ui.theme.isAppInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -23,7 +24,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
@@ -35,7 +35,7 @@ import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 @Composable
 fun SaveNameDialog(
     title: String,
-    isDark: Boolean = isSystemInDarkTheme(),
+    isDark: Boolean = isAppInDarkTheme(),
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {

@@ -78,6 +78,24 @@ class LocationSpooferDataPackageTest {
     }
 
     @Test
+    fun `主题设置能导出后再读回来，旧文件里为 null`() {
+        val settings = ExportedSettings(
+            themeMode = 2,
+            floatingBottomBar = false,
+            liquidGlass = false,
+            liquidGlassStrength = 1.5f,
+            pageScale = 0.85f,
+            predictiveBack = false
+        )
+        val restored = importJson.decodeFromString<ExportedSettings>(exportJson.encodeToString(settings))
+        assertEquals(settings, restored)
+
+        val old = importJson.decodeFromString<ExportedSettings>("""{"altitude":"25.0"}""")
+        assertNull(old.themeMode)
+        assertNull(old.pageScale)
+    }
+
+    @Test
     fun `旧的 version 2 文件仍然可以解析，settings 与 apiKeys 落到 null`() {
         // 模拟 2.6.x 之前导出的文件：没有 settings / apiKeys 字段
         val legacyV2 = """

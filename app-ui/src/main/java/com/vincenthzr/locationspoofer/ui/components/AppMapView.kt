@@ -1,6 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.vincenthzr.locationspoofer.ui.theme.isAppInDarkTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -70,7 +70,7 @@ fun AppMapView(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val isDark = isSystemInDarkTheme()
+    val isDark = isAppInDarkTheme()
     var mapController by remember { mutableStateOf<AppMapController?>(null) }
 
     LaunchedEffect(isDark, mapController) {

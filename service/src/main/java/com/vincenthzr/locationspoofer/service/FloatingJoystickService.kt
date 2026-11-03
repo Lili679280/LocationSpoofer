@@ -3,6 +3,9 @@ package com.vincenthzr.locationspoofer.service
 import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Intent
+import android.content.SharedPreferences
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.graphics.PixelFormat
 import android.os.IBinder
 import android.view.Gravity
@@ -13,7 +16,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.layout.*
@@ -38,6 +40,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
@@ -56,6 +60,7 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.vincenthzr.locationspoofer.data.motion.MotionController
+import com.vincenthzr.locationspoofer.utils.SettingsManager
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import java.text.SimpleDateFormat
@@ -73,6 +78,8 @@ import kotlin.math.sqrt
 class FloatingJoystickService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
 
     private val motionController: MotionController by inject()
+    private val settingsManager: SettingsManager by inject()
+    private var systemDark by mutableStateOf(readSystemDark())
 
     private lateinit var windowManager: WindowManager
     private lateinit var params: WindowManager.LayoutParams
@@ -102,6 +109,15 @@ class FloatingJoystickService : Service(), LifecycleOwner, ViewModelStoreOwner, 
         }
     }
 
+    /** 软件选了深浅色后本进程的配置也跟着变，真正的系统设置要从系统资源读 */
+    private fun readSystemDark(): Boolean =
+        Resources.getSystem().configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        systemDark = readSystemDark()
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private fun showFloatingWindow() {
         val density = resources.displayMetrics.density
@@ -122,10 +138,31 @@ class FloatingJoystickService : Service(), LifecycleOwner, ViewModelStoreOwner, 
             setViewTreeViewModelStoreOwner(this@FloatingJoystickService)
             setViewTreeSavedStateRegistryOwner(this@FloatingJoystickService)
             setContent {
-                MaterialTheme {
+                // 打开期间改主题或缩放也要马上生效
+                var themeMode by remember { mutableIntStateOf(settingsManager.themeMode) }
+                var uiScale by remember { mutableFloatStateOf(settingsManager.adaptiveScale * settingsManager.pageScale) }
+                DisposableEffect(Unit) {
+                    val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+                        themeMode = settingsManager.themeMode
+                        uiScale = settingsManager.adaptiveScale * settingsManager.pageScale
+                    }
+                    settingsManager.registerChangeListener(listener)
+                    onDispose { settingsManager.unregisterChangeListener(listener) }
+                }
+                val isDark = when (themeMode) {
+                    SettingsManager.THEME_MODE_LIGHT -> false
+                    SettingsManager.THEME_MODE_DARK -> true
+                    else -> systemDark
+                }
+                val baseDensity = LocalDensity.current
+                val overlayDensity = remember(baseDensity.density, baseDensity.fontScale, uiScale) {
+                    Density(baseDensity.density * uiScale, baseDensity.fontScale.coerceAtMost(1.15f))
+                }
+                CompositionLocalProvider(LocalDensity provides overlayDensity) { MaterialTheme {
                     val state by motionController.state.collectAsState()
                     FloatingJoystickOverlay(
                         state = state,
+                        isDark = isDark,
                         onMoveWindow = { dx, dy -> moveWindow(dx, dy) },
                         onJoystick = { bearing, intensity -> motionController.joystick(bearing, intensity) },
                         onPause = { motionController.pause() },
@@ -137,7 +174,7 @@ class FloatingJoystickService : Service(), LifecycleOwner, ViewModelStoreOwner, 
                         onDiscardRecording = { motionController.discardRecording() },
                         onNeedKeyboard = { setFocusable(it) }
                     )
-                }
+                } }
             }
         }
         windowManager.addView(composeView, params)
@@ -232,6 +269,7 @@ private fun statusColor(state: MotionController.State, palette: Palette): Color 
 @Composable
 private fun FloatingJoystickOverlay(
     state: MotionController.State,
+    isDark: Boolean,
     onMoveWindow: (Float, Float) -> Unit,
     onJoystick: (Double, Float) -> Unit,
     onPause: () -> Unit,
@@ -243,7 +281,7 @@ private fun FloatingJoystickOverlay(
     onDiscardRecording: () -> Unit,
     onNeedKeyboard: (Boolean) -> Unit
 ) {
-    val palette = if (isSystemInDarkTheme()) DarkPalette else LightPalette
+    val palette = if (isDark) DarkPalette else LightPalette
     var collapsed by remember { mutableStateOf(false) }
     LaunchedEffect(state.hasPendingRecording) {
         if (state.hasPendingRecording) collapsed = false

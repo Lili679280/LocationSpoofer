@@ -82,6 +82,14 @@ class MainViewModel(
             useGaitTemplate = settingsRepository.useGaitTemplate,
             keepLastMapPosition = settingsRepository.keepLastMapPosition,
             forceMockMode = settingsRepository.forceMockMode,
+            // 主题也要一开始就读进来，否则第一帧的深浅色和缩放都是错的
+            themeMode = settingsRepository.themeMode,
+            floatingBottomBar = settingsRepository.floatingBottomBar,
+            liquidGlass = settingsRepository.liquidGlass,
+            liquidGlassStrength = settingsRepository.liquidGlassStrength,
+            adaptiveScale = settingsRepository.adaptiveScale,
+            pageScale = settingsRepository.pageScale,
+            predictiveBack = settingsRepository.predictiveBack,
             stayAtRouteStopPoint = settingsRepository.stayAtRouteStopPoint,
             savedLocations = settingsRepository.getSavedLocations(),
             savedRoutes = emptyList(), // 将由 Room Flow 填充
